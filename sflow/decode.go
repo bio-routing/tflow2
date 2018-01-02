@@ -17,6 +17,7 @@ import (
 	"unsafe"
 
 	"github.com/golang/glog"
+	"github.com/pkg/errors"
 	"github.com/taktv6/tflow2/convert"
 )
 
@@ -89,7 +90,7 @@ func Decode(raw []byte, remote net.IP) (*Packet, error) {
 
 	flowSamples, err := decodeFlows(headerBottomPtr, h.NumSamples)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to dissect flows: %v", err)
+		return nil, errors.Wrap(err, "Unable to dissect flows")
 	}
 	p.FlowSamples = flowSamples
 
@@ -115,7 +116,7 @@ func decodeFlows(samplesPtr unsafe.Pointer, NumSamples uint32) ([]*FlowSample, e
 		if sfTypeFormat == dataFlowSample {
 			fs, err := decodeFlowSample(samplesPtr)
 			if err != nil {
-				return nil, fmt.Errorf("Unable to decode flow sample: %v", err)
+				return nil, errors.Wrap(err, "Unable to decode flow sample")
 			}
 			flowSamples = append(flowSamples, fs)
 		}
@@ -148,7 +149,7 @@ func decodeFlowSample(flowSamplePtr unsafe.Pointer) (*FlowSample, error) {
 			case extendedRouterData:
 				erd, err = decodeExtendRouterData(flowSamplePtr)
 				if err != nil {
-					return nil, fmt.Errorf("Unable to decide extended router data: %v", err)
+					return nil, errors.Wrap(err, "Unable to decide extended router data")
 				}
 
 			case extendedSwitchData:

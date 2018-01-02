@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
+	"github.com/pkg/errors"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -101,13 +102,13 @@ var (
 func New(filename string) (*Config, error) {
 	cfgFile, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to read config file %s: %v", filename, err)
+		return nil, errors.Wrapf(err, "Unable to read config file %s", filename)
 	}
 
 	cfg := &Config{}
 	err = yaml.Unmarshal(cfgFile, cfg)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to parse yaml file: %v", err)
+		return nil, errors.Wrap(err, "Unable to parse yaml file")
 	}
 
 	cfg.defaults()

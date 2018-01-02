@@ -22,6 +22,7 @@ import (
 	"unsafe"
 
 	"github.com/golang/glog"
+	"github.com/pkg/errors"
 	"github.com/taktv6/tflow2/config"
 	"github.com/taktv6/tflow2/convert"
 	"github.com/taktv6/tflow2/netflow"
@@ -224,7 +225,7 @@ func (sfs *SflowServer) processPacket(agent net.IP, buffer []byte) {
 func getUDP(udpPtr unsafe.Pointer, length uint32, fl *netflow.Flow) error {
 	udp, err := packet.DecodeUDP(udpPtr, length)
 	if err != nil {
-		return fmt.Errorf("Unable to decode UDP datagram: %v", err)
+		return errors.Wrap(err, "Unable to decode UDP datagram")
 	}
 
 	fl.SrcPort = uint32(udp.SrcPort)
@@ -236,7 +237,7 @@ func getUDP(udpPtr unsafe.Pointer, length uint32, fl *netflow.Flow) error {
 func getTCP(tcpPtr unsafe.Pointer, length uint32, fl *netflow.Flow) error {
 	tcp, err := packet.DecodeTCP(tcpPtr, length)
 	if err != nil {
-		return fmt.Errorf("Unable to decode TCP segment: %v", err)
+		return errors.Wrap(err, "Unable to decode TCP segment")
 	}
 
 	fl.SrcPort = uint32(tcp.SrcPort)

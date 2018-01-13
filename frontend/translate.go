@@ -92,7 +92,7 @@ func (fe *Frontend) translateCondition(field, value string) (*database.Condition
 	}, nil
 }
 
-// translateQuery translates URL parameters to the internal represenation of a query
+// translateQuery translates URL parameters to the internal representation of a query
 func (fe *Frontend) translateQuery(params url.Values) (q database.Query, errors []error) {
 	for key, values := range params {
 		var err error

@@ -82,7 +82,7 @@ want to work with interface IDs) your SNMP RO community.
 
 ## Limitations
 
-Please be aware this software is not platform indipendent. It will only work
+Please be aware this software is not platform independent. It will only work
 on little endian machines (such as x86)
 
 ## License

@@ -5,16 +5,39 @@ version: 2
 jobs:
   build:
     docker:
-      # specify the version
       - image: circleci/golang:1.11
-
     working_directory: /go/src/github.com/bio-routing/tflow2
     steps:
       - checkout
+
+      # go dep
       - run: curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
       - run: dep ensure -v
 
+      # run tests and report coverage
       - run: go test -v -cover -race -coverprofile=coverage.txt ./...
       - run: bash <(curl -s https://codecov.io/bash)
 
+      # build binary
       - run: go install github.com/bio-routing/tflow2
+
+  checks:
+    docker:
+      - image: circleci/golang:1.11
+    working_directory: /go/src/github.com/bio-routing/tflow2
+    steps:
+      - checkout
+
+      # check goftm
+      - run: .circleci/check-gofmt
+
+      # check misspell
+      - run: go get github.com/client9/misspell/cmd/misspell
+      - run: misspell -error .
+
+workflows:
+  version: 2
+  workflow:
+    jobs:
+    - checks
+    - build

@@ -16,9 +16,9 @@ import (
 	"net"
 	"unsafe"
 
+	"github.com/bio-routing/tflow2/convert"
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
-	"github.com/bio-routing/tflow2/convert"
 )
 
 const (

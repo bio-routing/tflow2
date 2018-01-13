@@ -24,11 +24,11 @@ import (
 	"github.com/bio-routing/tflow2/config"
 	"github.com/bio-routing/tflow2/srcache"
 
-	"github.com/golang/glog"
 	"github.com/bio-routing/tflow2/convert"
 	"github.com/bio-routing/tflow2/netflow"
 	"github.com/bio-routing/tflow2/nf9"
 	"github.com/bio-routing/tflow2/stats"
+	"github.com/golang/glog"
 )
 
 // fieldMap describes what information is at what index in the slice

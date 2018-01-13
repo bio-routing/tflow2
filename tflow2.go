@@ -17,7 +17,6 @@ import (
 	"runtime"
 	"sync"
 
-	"github.com/golang/glog"
 	"github.com/bio-routing/tflow2/annotation"
 	"github.com/bio-routing/tflow2/config"
 	"github.com/bio-routing/tflow2/database"
@@ -30,6 +29,7 @@ import (
 	"github.com/bio-routing/tflow2/sfserver"
 	"github.com/bio-routing/tflow2/srcache"
 	"github.com/bio-routing/tflow2/stats"
+	"github.com/golang/glog"
 )
 
 var (

@@ -3,8 +3,8 @@ package frontend
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/bio-routing/tflow2/database"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestFormatBreakdownKey(t *testing.T) {

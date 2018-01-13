@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/golang/glog"
 	"github.com/bio-routing/tflow2/avltree"
 	"github.com/bio-routing/tflow2/iana"
 	"github.com/bio-routing/tflow2/intfmapper"
 	"github.com/bio-routing/tflow2/netflow"
+	"github.com/golang/glog"
 )
 
 // BreakdownKey is the key used for the brakedown map

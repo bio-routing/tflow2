@@ -25,11 +25,11 @@ import (
 	"github.com/bio-routing/tflow2/iana"
 	"github.com/bio-routing/tflow2/intfmapper"
 
-	"github.com/golang/glog"
-	"github.com/golang/protobuf/proto"
 	"github.com/bio-routing/tflow2/avltree"
 	"github.com/bio-routing/tflow2/netflow"
 	"github.com/bio-routing/tflow2/nfserver"
+	"github.com/golang/glog"
+	"github.com/golang/protobuf/proto"
 )
 
 // FlowsByTimeRtr holds all keys (and thus is the only way) to our flows

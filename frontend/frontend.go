@@ -20,12 +20,12 @@ import (
 	_ "net/http/pprof" // Needed for profiling only
 	"strings"
 
-	"github.com/golang/glog"
 	"github.com/bio-routing/tflow2/config"
 	"github.com/bio-routing/tflow2/database"
 	"github.com/bio-routing/tflow2/iana"
 	"github.com/bio-routing/tflow2/intfmapper"
 	"github.com/bio-routing/tflow2/stats"
+	"github.com/golang/glog"
 )
 
 // Frontend represents the web interface

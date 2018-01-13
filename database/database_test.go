@@ -50,7 +50,7 @@ func TestQuery(t *testing.T) {
 			// Testcase: 2 flows from AS100 to AS300 and back (TCP session).
 			name: "Test 1",
 			flows: []*netflow.Flow{
-				&netflow.Flow{
+				{
 					Router:     []byte{1, 2, 3, 4},
 					Family:     4,
 					SrcAddr:    []byte{10, 0, 0, 1},
@@ -69,7 +69,7 @@ func TestQuery(t *testing.T) {
 					Samplerate: 4,
 					Timestamp:  ts1,
 				},
-				&netflow.Flow{
+				{
 					Router:     []byte{1, 2, 3, 4},
 					Family:     4,
 					SrcAddr:    []byte{10, 0, 0, 1},
@@ -88,7 +88,7 @@ func TestQuery(t *testing.T) {
 					Samplerate: 4,
 					Timestamp:  ts1,
 				},
-				&netflow.Flow{
+				{
 					Router:     []byte{1, 2, 3, 4},
 					Family:     4,
 					SrcAddr:    []byte{30, 0, 0, 1},
@@ -107,7 +107,7 @@ func TestQuery(t *testing.T) {
 					Samplerate: 4,
 					Timestamp:  ts1,
 				},
-				&netflow.Flow{
+				{
 					Router:     []byte{1, 2, 3, 4},
 					Family:     4,
 					SrcAddr:    []byte{30, 0, 0, 2},
@@ -158,20 +158,20 @@ func TestQuery(t *testing.T) {
 			},
 			expectedResult: Result{
 				TopKeys: map[BreakdownKey]void{
-					BreakdownKey{
+					{
 						FieldSrcAddr: "30.0.0.1",
 						FieldDstAddr: "10.0.0.1",
-					}: void{},
-					BreakdownKey{
+					}: {},
+					{
 						FieldSrcAddr: "30.0.0.2",
 						FieldDstAddr: "10.0.0.1",
-					}: void{},
+					}: {},
 				},
 				Timestamps: []int64{
 					ts1,
 				},
 				Data: map[int64]BreakdownMap{
-					ts1: BreakdownMap{
+					ts1: {
 						BreakdownKey{
 							FieldSrcAddr: "30.0.0.1",
 							FieldDstAddr: "10.0.0.1",
@@ -191,7 +191,7 @@ func TestQuery(t *testing.T) {
 			// Opposite direction of Test 1
 			name: "Test 2",
 			flows: []*netflow.Flow{
-				&netflow.Flow{
+				{
 					Router:     []byte{1, 2, 3, 4},
 					Family:     4,
 					SrcAddr:    []byte{10, 0, 0, 1},
@@ -210,7 +210,7 @@ func TestQuery(t *testing.T) {
 					Samplerate: 4,
 					Timestamp:  ts1,
 				},
-				&netflow.Flow{
+				{
 					Router:     []byte{1, 2, 3, 4},
 					Family:     4,
 					SrcAddr:    []byte{10, 0, 0, 1},
@@ -229,7 +229,7 @@ func TestQuery(t *testing.T) {
 					Samplerate: 4,
 					Timestamp:  ts1,
 				},
-				&netflow.Flow{
+				{
 					Router:     []byte{1, 2, 3, 4},
 					Family:     4,
 					SrcAddr:    []byte{30, 0, 0, 1},
@@ -248,7 +248,7 @@ func TestQuery(t *testing.T) {
 					Samplerate: 4,
 					Timestamp:  ts1,
 				},
-				&netflow.Flow{
+				{
 					Router:     []byte{1, 2, 3, 4},
 					Family:     4,
 					SrcAddr:    []byte{30, 0, 0, 2},
@@ -299,20 +299,20 @@ func TestQuery(t *testing.T) {
 			},
 			expectedResult: Result{
 				TopKeys: map[BreakdownKey]void{
-					BreakdownKey{
+					{
 						FieldSrcAddr: "10.0.0.1",
 						FieldDstAddr: "30.0.0.1",
-					}: void{},
-					BreakdownKey{
+					}: {},
+					{
 						FieldSrcAddr: "10.0.0.1",
 						FieldDstAddr: "30.0.0.2",
-					}: void{},
+					}: {},
 				},
 				Timestamps: []int64{
 					ts1,
 				},
 				Data: map[int64]BreakdownMap{
-					ts1: BreakdownMap{
+					ts1: {
 						BreakdownKey{
 							FieldSrcAddr: "10.0.0.1",
 							FieldDstAddr: "30.0.0.1",
@@ -332,7 +332,7 @@ func TestQuery(t *testing.T) {
 			// Test TopN function
 			name: "Test 3",
 			flows: []*netflow.Flow{
-				&netflow.Flow{
+				{
 					Router:     []byte{1, 2, 3, 4},
 					Family:     4,
 					SrcAddr:    []byte{10, 0, 0, 1},
@@ -351,7 +351,7 @@ func TestQuery(t *testing.T) {
 					Samplerate: 4,
 					Timestamp:  ts1,
 				},
-				&netflow.Flow{
+				{
 					Router:     []byte{1, 2, 3, 4},
 					Family:     4,
 					SrcAddr:    []byte{10, 0, 0, 1},
@@ -370,7 +370,7 @@ func TestQuery(t *testing.T) {
 					Samplerate: 4,
 					Timestamp:  ts1,
 				},
-				&netflow.Flow{
+				{
 					Router:     []byte{1, 2, 3, 4},
 					Family:     4,
 					SrcAddr:    []byte{30, 0, 0, 1},
@@ -389,7 +389,7 @@ func TestQuery(t *testing.T) {
 					Samplerate: 4,
 					Timestamp:  ts1,
 				},
-				&netflow.Flow{
+				{
 					Router:     []byte{1, 2, 3, 4},
 					Family:     4,
 					SrcAddr:    []byte{30, 0, 0, 2},
@@ -440,16 +440,16 @@ func TestQuery(t *testing.T) {
 			},
 			expectedResult: Result{
 				TopKeys: map[BreakdownKey]void{
-					BreakdownKey{
+					{
 						FieldSrcAddr: "10.0.0.1",
 						FieldDstAddr: "30.0.0.1",
-					}: void{},
+					}: {},
 				},
 				Timestamps: []int64{
 					ts1,
 				},
 				Data: map[int64]BreakdownMap{
-					ts1: BreakdownMap{
+					ts1: {
 						BreakdownKey{
 							FieldSrcAddr: "10.0.0.1",
 							FieldDstAddr: "30.0.0.1",

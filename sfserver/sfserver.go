@@ -21,8 +21,6 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/golang/glog"
-	"github.com/pkg/errors"
 	"github.com/bio-routing/tflow2/config"
 	"github.com/bio-routing/tflow2/convert"
 	"github.com/bio-routing/tflow2/netflow"
@@ -30,6 +28,8 @@ import (
 	"github.com/bio-routing/tflow2/sflow"
 	"github.com/bio-routing/tflow2/srcache"
 	"github.com/bio-routing/tflow2/stats"
+	"github.com/golang/glog"
+	"github.com/pkg/errors"
 )
 
 // SflowServer represents a sflow Collector instance

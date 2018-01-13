@@ -3,11 +3,11 @@ package database
 import (
 	"net"
 
-	"github.com/golang/glog"
 	"github.com/bio-routing/tflow2/avltree"
 	"github.com/bio-routing/tflow2/convert"
 	"github.com/bio-routing/tflow2/iana"
 	"github.com/bio-routing/tflow2/intfmapper"
+	"github.com/golang/glog"
 )
 
 // TimeGroup groups all indices to flows of a particular router at a particular

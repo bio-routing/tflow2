@@ -57,8 +57,16 @@ func (fe *Frontend) prometheusHandler(w http.ResponseWriter, r *http.Request) {
 	ts := result.Timestamps[0]
 
 	// Print the data
-	for key, val := range result.Data[ts] {
-		fmt.Fprintf(w, "tflow_bytes{%s} %d\n", formatBreakdownKey(&key), val)
+	if len(result.TopKeys) > 0 {
+		for key := range result.TopKeys {
+			if _, ok := result.Data[ts][key]; ok {
+				fmt.Fprintf(w, "tflow_bytes{%s} %d\n", formatBreakdownKey(&key), result.Data[ts][key])
+			}
+		}
+	} else {
+		for key, val := range result.Data[ts] {
+			fmt.Fprintf(w, "tflow_bytes{%s} %d\n", formatBreakdownKey(&key), val)
+		}
 	}
 }
 

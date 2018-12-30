@@ -2,7 +2,7 @@
 
 
 [![CircleCI](https://circleci.com/gh/bio-routing/tflow2/tree/master.svg?style=shield)](https://circleci.com/gh/bio-routing/tflow2/tree/master)
-[![Coverage Status](https://coveralls.io/repos/bio-routing/tflow2/badge.svg?branch=master&service=github)](https://coveralls.io/github/bio-routing/tflow2?branch=master)
+[![Codecov](https://codecov.io/gh/bio-routing/tflow2/branch/master/graph/badge.svg)](https://codecov.io/gh/bio-routing/tflow2)
 [![Go ReportCard](http://goreportcard.com/badge/bio-routing/tflow2)](http://goreportcard.com/report/bio-routing/tflow2)
 
 tflow2 is an in memory netflow version 9, IPFIX and Sflow analyzer.

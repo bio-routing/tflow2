@@ -23,13 +23,13 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
-	"github.com/taktv6/tflow2/config"
-	"github.com/taktv6/tflow2/convert"
-	"github.com/taktv6/tflow2/netflow"
-	"github.com/taktv6/tflow2/packet"
-	"github.com/taktv6/tflow2/sflow"
-	"github.com/taktv6/tflow2/srcache"
-	"github.com/taktv6/tflow2/stats"
+	"github.com/bio-routing/tflow2/config"
+	"github.com/bio-routing/tflow2/convert"
+	"github.com/bio-routing/tflow2/netflow"
+	"github.com/bio-routing/tflow2/packet"
+	"github.com/bio-routing/tflow2/sflow"
+	"github.com/bio-routing/tflow2/srcache"
+	"github.com/bio-routing/tflow2/stats"
 )
 
 // SflowServer represents a sflow Collector instance

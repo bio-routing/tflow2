@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/taktv6/tflow2/convert"
-	"github.com/taktv6/tflow2/database"
+	"github.com/bio-routing/tflow2/convert"
+	"github.com/bio-routing/tflow2/database"
 )
 
 func (fe *Frontend) translateCondition(field, value string) (*database.Condition, error) {

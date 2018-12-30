@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/taktv6/tflow2/database"
+	"github.com/bio-routing/tflow2/database"
 )
 
 func TestFormatBreakdownKey(t *testing.T) {

@@ -23,11 +23,11 @@ import (
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
-	"github.com/taktv6/tflow2/avltree"
-	"github.com/taktv6/tflow2/convert"
-	"github.com/taktv6/tflow2/intfmapper"
-	"github.com/taktv6/tflow2/netflow"
-	"github.com/taktv6/tflow2/stats"
+	"github.com/bio-routing/tflow2/avltree"
+	"github.com/bio-routing/tflow2/convert"
+	"github.com/bio-routing/tflow2/intfmapper"
+	"github.com/bio-routing/tflow2/netflow"
+	"github.com/bio-routing/tflow2/stats"
 )
 
 // These constants are used in communication with the frontend

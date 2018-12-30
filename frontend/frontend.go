@@ -21,11 +21,11 @@ import (
 	"strings"
 
 	"github.com/golang/glog"
-	"github.com/taktv6/tflow2/config"
-	"github.com/taktv6/tflow2/database"
-	"github.com/taktv6/tflow2/iana"
-	"github.com/taktv6/tflow2/intfmapper"
-	"github.com/taktv6/tflow2/stats"
+	"github.com/bio-routing/tflow2/config"
+	"github.com/bio-routing/tflow2/database"
+	"github.com/bio-routing/tflow2/iana"
+	"github.com/bio-routing/tflow2/intfmapper"
+	"github.com/bio-routing/tflow2/stats"
 )
 
 // Frontend represents the web interface

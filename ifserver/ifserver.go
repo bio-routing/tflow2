@@ -22,12 +22,12 @@ import (
 	"sync/atomic"
 
 	"github.com/golang/glog"
-	"github.com/taktv6/tflow2/config"
-	"github.com/taktv6/tflow2/convert"
-	"github.com/taktv6/tflow2/ipfix"
-	"github.com/taktv6/tflow2/netflow"
-	"github.com/taktv6/tflow2/srcache"
-	"github.com/taktv6/tflow2/stats"
+	"github.com/bio-routing/tflow2/config"
+	"github.com/bio-routing/tflow2/convert"
+	"github.com/bio-routing/tflow2/ipfix"
+	"github.com/bio-routing/tflow2/netflow"
+	"github.com/bio-routing/tflow2/srcache"
+	"github.com/bio-routing/tflow2/stats"
 )
 
 // fieldMap describes what information is at what index in the slice

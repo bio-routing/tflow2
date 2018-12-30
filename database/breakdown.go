@@ -6,10 +6,10 @@ import (
 	"net"
 
 	"github.com/golang/glog"
-	"github.com/taktv6/tflow2/avltree"
-	"github.com/taktv6/tflow2/iana"
-	"github.com/taktv6/tflow2/intfmapper"
-	"github.com/taktv6/tflow2/netflow"
+	"github.com/bio-routing/tflow2/avltree"
+	"github.com/bio-routing/tflow2/iana"
+	"github.com/bio-routing/tflow2/intfmapper"
+	"github.com/bio-routing/tflow2/netflow"
 )
 
 // BreakdownKey is the key used for the brakedown map

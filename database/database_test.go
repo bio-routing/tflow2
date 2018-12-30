@@ -8,10 +8,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/taktv6/tflow2/convert"
-	"github.com/taktv6/tflow2/iana"
-	"github.com/taktv6/tflow2/intfmapper"
-	"github.com/taktv6/tflow2/netflow"
+	"github.com/bio-routing/tflow2/convert"
+	"github.com/bio-routing/tflow2/iana"
+	"github.com/bio-routing/tflow2/intfmapper"
+	"github.com/bio-routing/tflow2/netflow"
 )
 
 type intfMapper struct {

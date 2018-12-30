@@ -16,7 +16,7 @@ import (
 	"net"
 	"unsafe"
 
-	"github.com/taktv6/tflow2/convert"
+	"github.com/bio-routing/tflow2/convert"
 )
 
 const (

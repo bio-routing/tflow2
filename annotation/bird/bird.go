@@ -21,9 +21,9 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/golang/glog"
 	"github.com/bio-routing/tflow2/netflow"
 	"github.com/bio-routing/tflow2/stats"
+	"github.com/golang/glog"
 )
 
 // QueryResult carries all useful information we extracted from a BIRD querys result
@@ -135,7 +135,7 @@ func (c *birdCon) reconnector() {
 				if err == nil {
 					tmpCon.Close()
 				}
-				glog.Warning("Reading from BIRD failed: %v", err)
+				glog.Warningf("Reading from BIRD failed: %v", err)
 				continue
 			}
 

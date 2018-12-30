@@ -20,14 +20,14 @@ import (
 	"sync"
 	"time"
 
-	"github.com/golang/glog"
-	"github.com/golang/protobuf/proto"
-	"github.com/pkg/errors"
 	"github.com/bio-routing/tflow2/avltree"
 	"github.com/bio-routing/tflow2/convert"
 	"github.com/bio-routing/tflow2/intfmapper"
 	"github.com/bio-routing/tflow2/netflow"
 	"github.com/bio-routing/tflow2/stats"
+	"github.com/golang/glog"
+	"github.com/golang/protobuf/proto"
+	"github.com/pkg/errors"
 )
 
 // These constants are used in communication with the frontend
@@ -418,7 +418,7 @@ func (fdb *FlowDatabase) RunQuery(q *Query) (*Result, error) {
 		timestamps = append(timestamps, ts.(int64))
 	}
 
-	glog.Infof("Query %s took %d ns\n", q, time.Since(queryStart))
+	glog.Infof("Query %v took %d ns\n", q, time.Since(queryStart))
 
 	return &Result{
 		TopKeys:     topKeys,

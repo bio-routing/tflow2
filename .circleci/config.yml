@@ -6,13 +6,8 @@ jobs:
   build:
     docker:
       - image: circleci/golang:1.11
-    working_directory: /go/src/github.com/bio-routing/tflow2
     steps:
       - checkout
-
-      # go dep
-      - run: curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-      - run: dep ensure -v
 
       # run tests and report coverage
       - run: go test -v -cover -race -coverprofile=coverage.txt ./...
@@ -24,7 +19,6 @@ jobs:
   checks:
     docker:
       - image: circleci/golang:1.11
-    working_directory: /go/src/github.com/bio-routing/tflow2
     steps:
       - checkout
 

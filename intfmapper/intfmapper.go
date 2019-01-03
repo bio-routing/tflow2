@@ -7,8 +7,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/bio-routing/tflow2/config"
 	"github.com/golang/glog"
-	"github.com/taktv6/tflow2/config"
+	"github.com/pkg/errors"
 
 	g "github.com/soniah/gosnmp"
 )
@@ -50,7 +51,7 @@ func New(agents []config.Agent, renewInterval int64) (*Mapper, error) {
 	for _, agent := range m.agents {
 		m.interfaceIDByNameByAgent[agent.Name] = make(InterfaceIDByName)
 		if err := m.renewMapping(agent); err != nil {
-			return nil, fmt.Errorf("Unable to get interface mapping for %s: %v", agent.Name, err)
+			return nil, errors.Wrapf(err, "Unable to get interface mapping for %s", agent.Name)
 		}
 	}
 

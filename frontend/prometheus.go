@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/taktv6/tflow2/convert"
-	"github.com/taktv6/tflow2/database"
+	"github.com/bio-routing/tflow2/convert"
+	"github.com/bio-routing/tflow2/database"
 )
 
 func (fe *Frontend) prometheusHandler(w http.ResponseWriter, r *http.Request) {

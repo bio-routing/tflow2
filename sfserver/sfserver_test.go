@@ -18,9 +18,9 @@ import (
 
 	"github.com/golang/glog"
 
-	"github.com/taktv6/tflow2/convert"
-	"github.com/taktv6/tflow2/packet"
-	"github.com/taktv6/tflow2/sflow"
+	"github.com/bio-routing/tflow2/convert"
+	"github.com/bio-routing/tflow2/packet"
+	"github.com/bio-routing/tflow2/sflow"
 )
 
 func TestIntegration(t *testing.T) {

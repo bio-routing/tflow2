@@ -4,8 +4,8 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/bio-routing/tflow2/database"
 	"github.com/stretchr/testify/assert"
-	"github.com/taktv6/tflow2/database"
 )
 
 func TestTranslateCondition(t *testing.T) {

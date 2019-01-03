@@ -15,7 +15,7 @@ import (
 	"net"
 	"testing"
 
-	"github.com/taktv6/tflow2/convert"
+	"github.com/bio-routing/tflow2/convert"
 )
 
 func TestDecode(t *testing.T) {

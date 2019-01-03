@@ -1,19 +1,19 @@
 # tflow2
 
 
-[![Build Status](https://travis-ci.org/taktv6/tflow2.svg?branch=master)](https://travis-ci.org/taktv6/tflow2)
-[![Coverage Status](https://coveralls.io/repos/taktv6/tflow2/badge.svg?branch=master&service=github)](https://coveralls.io/github/taktv6/tflow2?branch=master)
-[![Go ReportCard](http://goreportcard.com/badge/taktv6/tflow2)](http://goreportcard.com/report/taktv6/tflow2)
+[![CircleCI](https://circleci.com/gh/bio-routing/tflow2/tree/master.svg?style=shield)](https://circleci.com/gh/bio-routing/tflow2/tree/master)
+[![Codecov](https://codecov.io/gh/bio-routing/tflow2/branch/master/graph/badge.svg)](https://codecov.io/gh/bio-routing/tflow2)
+[![Go ReportCard](http://goreportcard.com/badge/bio-routing/tflow2)](http://goreportcard.com/report/bio-routing/tflow2)
 
 tflow2 is an in memory netflow version 9, IPFIX and Sflow analyzer.
 It is designed for fast arbitrary queries and exports data to [Prometheus](https://prometheus.io/).
 
 ## Usage
 
-Quick install with `go get -u github.com/taktv6/tflow2`
-and `go build github.com/taktv6/tflow2`
+Quick install with `go get -u github.com/bio-routing/tflow2`
+and `go build github.com/bio-routing/tflow2`
 or download a pre-built binary from the
-[releases page](https://github.com/taktv6/tflow2/releases).
+[releases page](https://github.com/bio-routing/tflow2/releases).
 
 The release binaries have an additional command, `tflow2 -version`,
 which reports the release version.
@@ -82,7 +82,7 @@ want to work with interface IDs) your SNMP RO community.
 
 ## Limitations
 
-Please be aware this software is not platform indipendent. It will only work
+Please be aware this software is not platform independent. It will only work
 on little endian machines (such as x86)
 
 ## License

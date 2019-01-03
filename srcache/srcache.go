@@ -4,7 +4,7 @@ import (
 	"net"
 	"sync"
 
-	"github.com/taktv6/tflow2/config"
+	"github.com/bio-routing/tflow2/config"
 )
 
 // SamplerateCache caches information about samplerates

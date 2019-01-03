@@ -5,8 +5,8 @@ import (
 	"net"
 	"sync"
 
-	"github.com/taktv6/tflow2/avltree"
-	"github.com/taktv6/tflow2/convert"
+	"github.com/bio-routing/tflow2/avltree"
+	"github.com/bio-routing/tflow2/convert"
 )
 
 type mapTree struct {

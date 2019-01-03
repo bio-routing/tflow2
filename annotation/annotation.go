@@ -16,10 +16,10 @@ import (
 	"context"
 	"sync/atomic"
 
-	"github.com/taktv6/tflow2/annotation/bird"
-	"github.com/taktv6/tflow2/config"
-	"github.com/taktv6/tflow2/netflow"
-	"github.com/taktv6/tflow2/stats"
+	"github.com/bio-routing/tflow2/annotation/bird"
+	"github.com/bio-routing/tflow2/config"
+	"github.com/bio-routing/tflow2/netflow"
+	"github.com/bio-routing/tflow2/stats"
 
 	"github.com/golang/glog"
 	"google.golang.org/grpc"

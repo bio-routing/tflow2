@@ -14,8 +14,8 @@ package annotation
 import (
 	"testing"
 
-	"github.com/taktv6/tflow2/config"
-	"github.com/taktv6/tflow2/netflow"
+	"github.com/bio-routing/tflow2/config"
+	"github.com/bio-routing/tflow2/netflow"
 )
 
 func TestTimestampAggr(t *testing.T) {

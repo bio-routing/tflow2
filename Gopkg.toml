@@ -1,0 +1,34 @@
+# Refer to https://golang.github.io/dep/docs/Gopkg.toml.html
+# for detailed Gopkg.toml documentation.
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/golang/glog"
+
+[[constraint]]
+  name = "github.com/golang/protobuf"
+  version = "1.x"
+
+[[constraint]]
+  name = "github.com/soniah/gosnmp"
+  version = "1.x"
+
+[[constraint]]
+  name = "github.com/stretchr/testify"
+  version = "1.x"
+
+[[constraint]]
+  branch = "master"
+  name = "golang.org/x/net"
+
+[[constraint]]
+  name = "google.golang.org/grpc"
+  version = "1.x"
+
+[[constraint]]
+  name = "gopkg.in/yaml.v2"
+  version = "2.x"
+
+[prune]
+  go-tests = true
+  unused-packages = true

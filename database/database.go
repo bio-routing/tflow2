@@ -28,8 +28,9 @@ import (
 	"github.com/bio-routing/tflow2/avltree"
 	"github.com/bio-routing/tflow2/netflow"
 	"github.com/bio-routing/tflow2/nfserver"
-	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // FlowsByTimeRtr holds all keys (and thus is the only way) to our flows
@@ -146,7 +147,7 @@ func (fdb *FlowDatabase) Add(fl *netflow.Flow) {
 	rtrip := net.IP(fl.Router)
 
 	if _, ok := fdb.agentsNameByIP[rtrip.String()]; !ok {
-		glog.Warningf("Unknown flow source: %s", rtrip.String())
+		log.Warningf("Unknown flow source: %s", rtrip.String())
 		return
 	}
 
@@ -156,7 +157,7 @@ func (fdb *FlowDatabase) Add(fl *netflow.Flow) {
 	fdb.lock.RLock()
 	defer fdb.lock.RUnlock()
 	if _, ok := fdb.flows[fl.Timestamp]; !ok {
-		glog.Warningf("stopped adding data for %d: already deleted", fl.Timestamp)
+		log.Warningf("stopped adding data for %d: already deleted", fl.Timestamp)
 		return
 	}
 
@@ -246,13 +247,13 @@ func (fdb *FlowDatabase) dumpToDisk(ts int64, router string) {
 	tree.Each(dump, fdb.anonymize, flows)
 
 	if fdb.debug > 1 {
-		glog.Warningf("flows contains %d flows", len(flows.Flows))
+		log.Warningf("flows contains %d flows", len(flows.Flows))
 	}
 
 	// Marshal flows into proto buffer
 	buffer, err := proto.Marshal(flows)
 	if err != nil {
-		glog.Errorf("unable to marshal flows into pb: %v", err)
+		log.Errorf("unable to marshal flows into pb: %v", err)
 		return
 	}
 
@@ -263,14 +264,14 @@ func (fdb *FlowDatabase) dumpToDisk(ts int64, router string) {
 	// Create file
 	fh, err := os.Create(fmt.Sprintf("%s/%s/nf-%d-%s.tflow2.pb.gzip", fdb.storage, ymd, ts, router))
 	if err != nil {
-		glog.Errorf("couldn't create file: %v", err)
+		log.Errorf("couldn't create file: %v", err)
 	}
 	defer fh.Close()
 
 	// Compress data before writing it out to the disk
 	gz, err := gzip.NewWriterLevel(fh, fdb.compLevel)
 	if err != nil {
-		glog.Errorf("invalud gzip compression level: %v", err)
+		log.Errorf("invalud gzip compression level: %v", err)
 		return
 	}
 
@@ -279,7 +280,7 @@ func (fdb *FlowDatabase) dumpToDisk(ts int64, router string) {
 	gz.Close()
 
 	if err != nil {
-		glog.Errorf("failed to write file: %v", err)
+		log.Errorf("failed to write file: %v", err)
 	}
 }
 

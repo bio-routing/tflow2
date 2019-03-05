@@ -28,7 +28,8 @@ import (
 	"github.com/bio-routing/tflow2/netflow"
 	"github.com/bio-routing/tflow2/nf9"
 	"github.com/bio-routing/tflow2/stats"
-	"github.com/golang/glog"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // fieldMap describes what information is at what index in the slice
@@ -127,14 +128,14 @@ func (nfs *NetflowServer) packetWorker(identity int) {
 			break
 		}
 		if err != nil {
-			glog.Errorf("Error reading from socket: %v", err)
+			log.Errorf("Error reading from socket: %v", err)
 			continue
 		}
 		atomic.AddUint64(&stats.GlobalStats.Netflow9packets, 1)
 		atomic.AddUint64(&stats.GlobalStats.Netflow9bytes, uint64(length))
 
 		if !nfs.validateSource(remote.IP) {
-			glog.Errorf("Unknown source: %s", remote.IP.String())
+			log.Errorf("Unknown source: %s", remote.IP.String())
 		}
 
 		nfs.processPacket(remote.IP, buffer[:length])
@@ -148,7 +149,7 @@ func (nfs *NetflowServer) processPacket(remote net.IP, buffer []byte) {
 	length := len(buffer)
 	packet, err := nf9.Decode(buffer[:length], remote)
 	if err != nil {
-		glog.Errorf("nf9packet.Decode: %v", err)
+		log.Errorf("nf9packet.Decode: %v", err)
 		return
 	}
 
@@ -166,14 +167,14 @@ func (nfs *NetflowServer) processFlowSets(remote net.IP, sourceID uint32, flowSe
 		if template == nil {
 			templateKey := makeTemplateKey(addr, sourceID, set.Header.FlowSetID, keyParts)
 			if nfs.config.Debug > 0 {
-				glog.Warningf("Template for given FlowSet not found: %s", templateKey)
+				log.Warningf("Template for given FlowSet not found: %s", templateKey)
 			}
 			continue
 		}
 
 		records := nf9.DecodeFlowSet(template.Records, *set)
 		if records == nil {
-			glog.Warning("Error decoding FlowSet")
+			log.Warning("Error decoding FlowSet")
 			continue
 		}
 		nfs.processFlowSet(template, records, remote, ts, packet)
@@ -203,7 +204,7 @@ func (nfs *NetflowServer) processFlowSet(template *nf9.TemplateRecords, records 
 			case 6:
 				atomic.AddUint64(&stats.GlobalStats.Flows6, 1)
 			default:
-				glog.Warning("Unknown address family")
+				log.Warning("Unknown address family")
 				continue
 			}
 		}

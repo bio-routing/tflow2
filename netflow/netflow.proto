@@ -2,31 +2,26 @@ syntax = "proto3";
 
 package netflow;
 
+import "github.com/bio-routing/bio-rd/net/api/net.proto";
+option go_package = "github.com/bio-routing/tflow2/netflow";
+
 service annotator {
   rpc Annotate (Flow) returns (Flow) {}
-}
-
-// Pfx defines an IP prefix
-message pfx {
-    // IPv4 or IPv6 address
-    bytes IP = 1;
-    // Netmask
-    bytes mask = 2;
 }
 
 // Flow defines a network flow
 message Flow {
   // Router flow was received from
-  bytes router = 1;
+  bio.net.IP router = 1;
 
   // Address family
   uint32 family = 2;
 
   // SRC IP address
-  bytes src_addr =3;
+  bio.net.IP src_addr = 3;
 
   // DST IP address
-  bytes dst_addr = 4;
+  bio.net.IP dst_addr = 4;
 
   // Protocol
   uint32 protocol = 5;
@@ -40,11 +35,11 @@ message Flow {
   // SNMP interface id flow was received on
   uint32 int_in = 8;
 
-  // SNMP interface if flow was transmitted on
+  // SNMP interface id flow was transmitted on
   uint32 int_out = 9;
 
   // Next Hop IP address
-  bytes next_hop = 10;
+  bio.net.IP next_hop = 10;
 
   // SRC ASN
   uint32 src_as = 11;
@@ -59,10 +54,10 @@ message Flow {
   int64 timestamp = 14;
 
   // SRC prefix
-  pfx src_pfx = 15;
+  bio.net.Prefix src_pfx = 15;
 
   // DST perfix
-  pfx dst_pfx = 16;
+  bio.net.Prefix dst_pfx = 16;
 
   // SRC port
   uint32 src_port = 17;

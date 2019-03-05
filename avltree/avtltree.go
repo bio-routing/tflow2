@@ -16,7 +16,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/golang/glog"
+	log "github.com/sirupsen/logrus"
 )
 
 // Comparable is an interface used to pass compare functions to this avltree
@@ -328,7 +328,7 @@ func Intersection(candidates []*Tree) (res *Tree) {
 				return
 			}
 
-			glog.Infof("finding common elements in %d and %d elements", a.Count, b.Count)
+			log.Infof("finding common elements in %d and %d elements", a.Count, b.Count)
 			chRes <- a.Intersection(b)
 		}(chA[i], chB[i], chRet[i])
 		chA[i] <- candidates[i*2]

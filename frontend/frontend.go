@@ -25,7 +25,8 @@ import (
 	"github.com/bio-routing/tflow2/iana"
 	"github.com/bio-routing/tflow2/intfmapper"
 	"github.com/bio-routing/tflow2/stats"
-	"github.com/golang/glog"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // Frontend represents the web interface
@@ -56,7 +57,7 @@ func New(fdb *database.FlowDatabase, intfMapper *intfmapper.Mapper, iana *iana.I
 func (fe *Frontend) populateIndexHTML() {
 	html, err := ioutil.ReadFile("tflow2.html")
 	if err != nil {
-		glog.Errorf("Unable to read tflow2.html: %v", err)
+		log.Errorf("Unable to read tflow2.html: %v", err)
 		return
 	}
 
@@ -128,7 +129,7 @@ func (fe *Frontend) httpHandler(w http.ResponseWriter, r *http.Request) {
 func (fe *Frontend) getProtocols(w http.ResponseWriter, r *http.Request) {
 	output, err := json.Marshal(fe.iana.GetIPProtocolsByName())
 	if err != nil {
-		glog.Warningf("Unable to marshal: %v", err)
+		log.Warningf("Unable to marshal: %v", err)
 		http.Error(w, "Unable to marshal data", 500)
 	}
 	fmt.Fprintf(w, "%s", output)
@@ -137,7 +138,7 @@ func (fe *Frontend) getProtocols(w http.ResponseWriter, r *http.Request) {
 func fileHandler(w http.ResponseWriter, r *http.Request, filename string) {
 	content, err := ioutil.ReadFile(filename)
 	if err != nil {
-		glog.Warningf("Unable to read file: %v", err)
+		log.Warningf("Unable to read file: %v", err)
 		http.Error(w, "Unable to read file", 404)
 	}
 	fmt.Fprintf(w, "%s", string(content))

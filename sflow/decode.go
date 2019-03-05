@@ -17,8 +17,9 @@ import (
 	"unsafe"
 
 	"github.com/bio-routing/tflow2/convert"
-	"github.com/golang/glog"
 	"github.com/pkg/errors"
+
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -155,7 +156,7 @@ func decodeFlowSample(flowSamplePtr unsafe.Pointer) (*FlowSample, error) {
 			case extendedSwitchData:
 
 			default:
-				glog.Infof("Unknown sfTypeFormat\n")
+				log.Infof("Unknown sfTypeFormat\n")
 			}
 
 		}

@@ -25,9 +25,10 @@ import (
 	"github.com/bio-routing/tflow2/intfmapper"
 	"github.com/bio-routing/tflow2/netflow"
 	"github.com/bio-routing/tflow2/stats"
-	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // These constants are used in communication with the frontend
@@ -136,25 +137,25 @@ func (fdb *FlowDatabase) loadFromDisc(ts int64, agent string, query Query, resSu
 	fh, err := os.Open(filename)
 	if err != nil {
 		if fdb.debug > 0 {
-			glog.Errorf("unable to open file: %v", err)
+			log.Errorf("unable to open file: %v", err)
 		}
 		return nil, err
 	}
 	if fdb.debug > 1 {
-		glog.Infof("successfully opened file: %s", filename)
+		log.Infof("successfully opened file: %s", filename)
 	}
 	defer fh.Close()
 
 	gz, err := gzip.NewReader(fh)
 	if err != nil {
-		glog.Errorf("unable to create gzip reader: %v", err)
+		log.Errorf("unable to create gzip reader: %v", err)
 		return nil, err
 	}
 	defer gz.Close()
 
 	buffer, err := ioutil.ReadAll(gz)
 	if err != nil {
-		glog.Errorf("unable to gunzip: %v", err)
+		log.Errorf("unable to gunzip: %v", err)
 		return nil, err
 	}
 
@@ -162,7 +163,7 @@ func (fdb *FlowDatabase) loadFromDisc(ts int64, agent string, query Query, resSu
 	flows := netflow.Flows{}
 	err = proto.Unmarshal(buffer, &flows)
 	if err != nil {
-		glog.Errorf("unable to unmarshal protobuf: %v", err)
+		log.Errorf("unable to unmarshal protobuf: %v", err)
 		return nil, err
 	}
 
@@ -173,7 +174,7 @@ func (fdb *FlowDatabase) loadFromDisc(ts int64, agent string, query Query, resSu
 	}
 
 	if fdb.debug > 1 {
-		glog.Infof("file %s contains %d flows", filename, len(flows.Flows))
+		log.Infof("file %s contains %d flows", filename, len(flows.Flows))
 	}
 
 	// Validate flows and add them to res tree
@@ -291,7 +292,7 @@ func (fdb *FlowDatabase) getAgent(q *Query) (string, error) {
 		}
 	}
 	if rtr == "" {
-		glog.Warningf("Agent is mandatory cirteria")
+		log.Warningf("Agent is mandatory cirteria")
 		return "", fmt.Errorf("Agent criteria not found")
 	}
 
@@ -334,7 +335,7 @@ func (fdb *FlowDatabase) getResultByTS(resSum *concurrentResSum, ts int64, q *Qu
 	}
 
 	if timeGroups[rtr] == nil {
-		glog.Infof("TG of %s is nil", rtr)
+		log.Infof("TG of %s is nil", rtr)
 		return map[BreakdownKey]uint64{}
 	}
 
@@ -384,13 +385,13 @@ func (fdb *FlowDatabase) RunQuery(q *Query) (*Result, error) {
 	resWg := sync.WaitGroup{}
 
 	for ts := start; ts <= end; ts += fdb.aggregation {
-		glog.Infof("RunQuery: start timeslot %d", ts)
+		log.Infof("RunQuery: start timeslot %d", ts)
 		resWg.Add(1)
 		go func(ts int64) {
 			result := fdb.getResultByTS(resSum, ts, q, rtr)
 
 			if result != nil {
-				glog.Infof("RunQuery: data in timeslot %d", ts)
+				log.Infof("RunQuery: data in timeslot %d", ts)
 				resMtx.Lock()
 				resTime[ts] = result
 				resMtx.Unlock()
@@ -418,7 +419,7 @@ func (fdb *FlowDatabase) RunQuery(q *Query) (*Result, error) {
 		timestamps = append(timestamps, ts.(int64))
 	}
 
-	glog.Infof("Query %v took %d ns\n", q, time.Since(queryStart))
+	log.Infof("Query %v took %d ns\n", q, time.Since(queryStart))
 
 	return &Result{
 		TopKeys:     topKeys,

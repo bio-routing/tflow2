@@ -16,24 +16,22 @@ import (
 	"context"
 	"sync/atomic"
 
-	"github.com/bio-routing/tflow2/annotation/bird"
 	"github.com/bio-routing/tflow2/config"
 	"github.com/bio-routing/tflow2/netflow"
 	"github.com/bio-routing/tflow2/stats"
-
-	"github.com/golang/glog"
 	"google.golang.org/grpc"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // Annotator represents an flow annotator
 type Annotator struct {
-	inputs        []chan *netflow.Flow
-	output        chan *netflow.Flow
-	numWorkers    int
-	bgpAugment    bool
-	birdAnnotator *bird.Annotator
-	debug         int
-	cfg           *config.Config
+	inputs     []chan *netflow.Flow
+	output     chan *netflow.Flow
+	numWorkers int
+	bgpAugment bool
+	debug      int
+	cfg        *config.Config
 }
 
 // New creates a new `Annotator` instance
@@ -44,9 +42,7 @@ func New(inputs []chan *netflow.Flow, output chan *netflow.Flow, numWorkers int,
 		numWorkers: numWorkers,
 		cfg:        cfg,
 	}
-	if cfg.BGPAugmentation.Enabled {
-		a.birdAnnotator = bird.NewAnnotator(cfg.BGPAugmentation.BIRDSocket, cfg.BGPAugmentation.BIRD6Socket, cfg.Debug)
-	}
+
 	a.Init()
 	return a
 }
@@ -61,10 +57,10 @@ func (a *Annotator) Init() {
 				for _, an := range a.cfg.Annotators {
 					var opts []grpc.DialOption
 					opts = append(opts, grpc.WithInsecure())
-					glog.Infof("Connecting to annotator %s at %s", an.Name, an.Target)
+					log.Infof("Connecting to annotator %s at %s", an.Name, an.Target)
 					conn, err := grpc.Dial(an.Target, opts...)
 					if err != nil {
-						glog.Errorf("Failed to dial: %v", err)
+						log.Errorf("Failed to dial: %v", err)
 					}
 
 					clients = append(clients, netflow.NewAnnotatorClient(conn))
@@ -85,15 +81,10 @@ func (a *Annotator) Init() {
 					for _, c := range clients {
 						tmpFlow, err := c.Annotate(context.Background(), fl)
 						if err != nil {
-							glog.Errorf("Unable to annotate")
+							log.Errorf("Unable to annotate")
 							continue
 						}
 						fl = tmpFlow
-					}
-
-					// Annotate flows with ASN and Prefix information from local BIRD (bird.nic.cz) instance
-					if a.bgpAugment {
-						a.birdAnnotator.Augment(fl)
 					}
 
 					// Send flow over to database module

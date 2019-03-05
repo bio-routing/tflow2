@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/bio-routing/tflow2/config"
-	"github.com/golang/glog"
 	"github.com/pkg/errors"
 
+	log "github.com/sirupsen/logrus"
 	g "github.com/soniah/gosnmp"
 )
 
@@ -67,7 +67,7 @@ func (m *Mapper) startRenewWorkers() {
 				time.Sleep(time.Second * time.Duration(m.renewInterval))
 				err := m.renewMapping(agent)
 				if err != nil {
-					glog.Infof("Unable to renew interface mapping for %s: %v", agent.Name, err)
+					log.Infof("Unable to renew interface mapping for %s: %v", agent.Name, err)
 				}
 			}
 		}(agent)

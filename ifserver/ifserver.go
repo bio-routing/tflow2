@@ -27,7 +27,8 @@ import (
 	"github.com/bio-routing/tflow2/netflow"
 	"github.com/bio-routing/tflow2/srcache"
 	"github.com/bio-routing/tflow2/stats"
-	"github.com/golang/glog"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // fieldMap describes what information is at what index in the slice
@@ -123,14 +124,14 @@ func (ifs *IPFIXServer) packetWorker(identity int, conn *net.UDPConn) {
 			break
 		}
 		if err != nil {
-			glog.Errorf("Error reading from socket: %v", err)
+			log.Errorf("Error reading from socket: %v", err)
 			continue
 		}
 		atomic.AddUint64(&stats.GlobalStats.IPFIXpackets, 1)
 		atomic.AddUint64(&stats.GlobalStats.IPFIXbytes, uint64(length))
 
 		if !ifs.validateSource(remote.IP) {
-			glog.Errorf("Unknown source: %s", remote.IP.String())
+			log.Errorf("Unknown source: %s", remote.IP.String())
 		}
 
 		ifs.processPacket(remote.IP, buffer[:length])
@@ -144,7 +145,7 @@ func (ifs *IPFIXServer) processPacket(remote net.IP, buffer []byte) {
 	length := len(buffer)
 	packet, err := ipfix.Decode(buffer[:length], remote)
 	if err != nil {
-		glog.Errorf("ipfix.Decode: %v", err)
+		log.Errorf("ipfix.Decode: %v", err)
 		return
 	}
 
@@ -162,14 +163,14 @@ func (ifs *IPFIXServer) processFlowSets(remote net.IP, domainID uint32, flowSets
 		if template == nil {
 			templateKey := makeTemplateKey(addr, domainID, set.Header.SetID, keyParts)
 			if ifs.config.Debug > 0 {
-				glog.Warningf("Template for given FlowSet not found: %s", templateKey)
+				log.Warningf("Template for given FlowSet not found: %s", templateKey)
 			}
 			continue
 		}
 
 		records := template.DecodeFlowSet(*set)
 		if records == nil {
-			glog.Warning("Error decoding FlowSet")
+			log.Warning("Error decoding FlowSet")
 			continue
 		}
 		ifs.processFlowSet(template, records, remote, ts, packet)
@@ -194,7 +195,7 @@ func (ifs *IPFIXServer) processFlowSet(template *ipfix.TemplateRecords, records 
 			} else if fm.family == 6 {
 				atomic.AddUint64(&stats.GlobalStats.Flows6, 1)
 			} else {
-				glog.Warning("Unknown address family")
+				log.Warning("Unknown address family")
 				continue
 			}
 		}

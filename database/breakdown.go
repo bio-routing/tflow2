@@ -9,7 +9,8 @@ import (
 	"github.com/bio-routing/tflow2/iana"
 	"github.com/bio-routing/tflow2/intfmapper"
 	"github.com/bio-routing/tflow2/netflow"
-	"github.com/golang/glog"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // BreakdownKey is the key used for the brakedown map
@@ -198,7 +199,7 @@ func (bf *BreakdownFlags) Count() (count int) {
 // and builds sums for each key in order to allow us to find top combinations
 func breakdown(node *avltree.TreeNode, vals ...interface{}) {
 	if len(vals) != 5 {
-		glog.Errorf("lacking arguments")
+		log.Errorf("lacking arguments")
 		return
 	}
 

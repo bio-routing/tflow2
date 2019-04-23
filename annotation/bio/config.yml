@@ -1,0 +1,17 @@
+agents:
+  - address: 192.168.0.1
+    bgp-feeds:
+      - neighbor: 192.168.0.1
+        peer-as: 100
+        local-as: 200
+        afis: ["ipv4", "ipv6"]
+  - address: 192.168.0.2
+    bgp-feeds:
+      - neighbor: 192.168.0.2
+        peer-as: 100
+        local-as: 200
+        afis: ["ipv4"]
+      - neighbor: 2001:123::100
+        peer-as: 100
+        local-as: 200
+        afis: ["ipv6"]

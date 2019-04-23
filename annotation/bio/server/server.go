@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/bio-routing/bio-rd/protocols/bgp/packet"
 	"github.com/bio-routing/bio-rd/routingtable/adjRIBIn"
@@ -9,19 +10,42 @@ import (
 	bnet "github.com/bio-routing/bio-rd/net"
 	bgpServer "github.com/bio-routing/bio-rd/protocols/bgp/server"
 	routeAPI "github.com/bio-routing/bio-rd/route/api"
+	"github.com/bio-routing/tflow2/annotation/bio/config"
 	"github.com/bio-routing/tflow2/netflow"
 )
 
 // Server implements an annotator server
 type Server struct {
 	bgpSrv bgpServer.BGPServer
+	cfg    *config.Config
 }
 
 // New creates a new BIO annotator server
-func New(bgpSrv bgpServer.BGPServer) *Server {
+func New(bgpSrv bgpServer.BGPServer, cfg *config.Config) *Server {
 	return &Server{
 		bgpSrv: bgpSrv,
+		cfg:    cfg,
 	}
+}
+
+func (s *Server) getAgentBGPFeedAFI(agentAddr bnet.IP, afi uint16) *bnet.IP {
+	for i := range s.cfg.Agents {
+		if s.cfg.Agents[i].IPAddress != agentAddr {
+			continue
+		}
+
+		for j := range s.cfg.Agents[i].BGPFeeds {
+			for k := range s.cfg.Agents[j].BGPFeeds[j].NumericAFIs {
+				if s.cfg.Agents[j].BGPFeeds[j].NumericAFIs[k] != afi {
+					continue
+				}
+
+				return s.cfg.Agents[i].BGPFeeds[j].IPNeighbor
+			}
+		}
+	}
+
+	return nil
 }
 
 // Annotate annotates a flow
@@ -29,10 +53,17 @@ func (s *Server) Annotate(ctx context.Context, f *netflow.Flow) (*netflow.Flow, 
 	dstAddr := bnet.IPFromProtoIP(*f.DstAddr)
 	srcAddr := bnet.IPFromProtoIP(*f.SrcAddr)
 
-	afi := packet.IPv4AFI
-	safi := packet.UnicastSAFI
+	afi := uint16(packet.IPv4AFI)
+	if !dstAddr.IsIPv4() {
+		afi = uint16(packet.IPv6AFI)
+	}
 
-	ribIn := s.bgpSrv.GetRIBIn(bnet.IPFromProtoIP(*f.Router), uint16(afi), uint8(safi))
+	n := s.getAgentBGPFeedAFI(bnet.IPFromProtoIP(*f.Router), afi)
+	if n == nil {
+		return f, fmt.Errorf("No suitable BGP feed found for AFI %d on %q", afi, f.Router.String())
+	}
+
+	ribIn := s.bgpSrv.GetRIBIn(*n, afi, uint8(packet.UnicastSAFI))
 	if ribIn == nil {
 		return f, nil
 	}
@@ -70,9 +101,11 @@ func getFirstASN(p *routeAPI.BGPPath) uint32 {
 	if len(p.ASPath) == 0 {
 		return 0
 	}
+
 	if !p.ASPath[0].ASSequence {
 		return 0
 	}
+
 	if len(p.ASPath[0].ASNs) == 0 {
 		return 0
 	}

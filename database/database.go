@@ -22,10 +22,9 @@ import (
 	"time"
 	"unsafe"
 
+	"github.com/bio-routing/tflow2/avltree"
 	"github.com/bio-routing/tflow2/iana"
 	"github.com/bio-routing/tflow2/intfmapper"
-
-	"github.com/bio-routing/tflow2/avltree"
 	"github.com/bio-routing/tflow2/netflow"
 	"github.com/bio-routing/tflow2/nfserver"
 	"github.com/golang/protobuf/proto"

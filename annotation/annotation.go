@@ -42,7 +42,6 @@ func New(inputs []chan *netflow.Flow, output chan *netflow.Flow, numWorkers int,
 		numWorkers: numWorkers,
 		cfg:        cfg,
 	}
-
 	a.Init()
 	return a
 }

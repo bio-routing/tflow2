@@ -66,10 +66,11 @@ type headerBottom struct {
 
 // FlowSample is an sflow version 5 flow sample
 type FlowSample struct {
-	FlowSampleHeader    *FlowSampleHeader
-	RawPacketHeader     *RawPacketHeader
-	RawPacketHeaderData unsafe.Pointer
-	ExtendedRouterData  *ExtendedRouterData
+	FlowSampleHeader   *FlowSampleHeader
+	RawPacketHeader    *RawPacketHeader
+	Data               unsafe.Pointer
+	DataLen            uint32
+	ExtendedRouterData *ExtendedRouterData
 }
 
 // FlowSampleHeader is an sflow version 5 flow sample header

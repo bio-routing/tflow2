@@ -14,6 +14,7 @@ package main
 
 import (
 	"flag"
+	"os"
 	"runtime"
 	"sync"
 
@@ -49,7 +50,8 @@ func main() {
 
 	cfg, err := config.New(*configFile)
 	if err != nil {
-		log.Exitf("Unable to get configuration: %v", err)
+		log.Errorf("Unable to get configuration: %v", err)
+		os.Exit(1)
 	}
 
 	// Initialize statistics module
@@ -57,7 +59,8 @@ func main() {
 
 	inftMapper, err := intfmapper.New(cfg.Agents, cfg.AggregationPeriod)
 	if err != nil {
-		log.Exitf("Unable to initialize interface mappper: %v", err)
+		log.Errorf("Unable to initialize interface mappper: %v", err)
+		os.Exit(1)
 	}
 
 	chans := make([]chan *netflow.Flow, 0)

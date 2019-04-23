@@ -130,7 +130,7 @@ func (sfs *SflowServer) processPacket(agent net.IP, buffer []byte) {
 			continue
 		}
 
-		if fs.RawPacketHeaderData == nil {
+		if fs.Data == nil {
 			log.Infof("Received sflow packet without raw packet header. Skipped.")
 			continue
 		}
@@ -140,11 +140,13 @@ func (sfs *SflowServer) processPacket(agent net.IP, buffer []byte) {
 			continue
 		}
 
-		ether, err := packet.DecodeEthernet(fs.RawPacketHeaderData, fs.RawPacketHeader.OriginalPacketLength)
+		ether, err := packet.DecodeEthernet(fs.Data, fs.RawPacketHeader.OriginalPacketLength)
 		if err != nil {
 			log.Infof("Unable to decode ether packet: %v", err)
 			continue
 		}
+		fs.Data = unsafe.Pointer(uintptr(fs.Data) - packet.SizeOfEthernetII)
+		fs.DataLen -= uint32(packet.SizeOfEthernetII)
 
 		fl := &netflow.Flow{
 			Router:     agent,
@@ -159,67 +161,86 @@ func (sfs *SflowServer) processPacket(agent net.IP, buffer []byte) {
 		// We're updating the sampleCache to allow the forntend to show current sampling rates
 		sfs.sampleRateCache.Set(agent, uint64(fs.FlowSampleHeader.SamplingRate))
 
-		if fs.ExtendedRouterData != nil {
-			fl.NextHop = fs.ExtendedRouterData.NextHop
-		}
-
-		if ether.EtherType == packet.EtherTypeIPv4 {
-			fl.Family = 4
-			ipv4Ptr := unsafe.Pointer(uintptr(fs.RawPacketHeaderData) - packet.SizeOfEthernetII)
-			ipv4, err := packet.DecodeIPv4(ipv4Ptr, fs.RawPacketHeader.OriginalPacketLength-uint32(packet.SizeOfEthernetII))
-			if err != nil {
-				log.Errorf("Unable to decode IPv4 packet: %v", err)
-			}
-
-			fl.SrcAddr = convert.Reverse(ipv4.SrcAddr[:])
-			fl.DstAddr = convert.Reverse(ipv4.DstAddr[:])
-			fl.Protocol = uint32(ipv4.Protocol)
-			switch ipv4.Protocol {
-			case packet.TCP:
-				tcpPtr := unsafe.Pointer(uintptr(ipv4Ptr) - packet.SizeOfIPv4Header)
-				len := fs.RawPacketHeader.OriginalPacketLength - uint32(packet.SizeOfEthernetII) - uint32(packet.SizeOfIPv4Header)
-				if err := getTCP(tcpPtr, len, fl); err != nil {
-					log.Errorf("%v", err)
-				}
-			case packet.UDP:
-				udpPtr := unsafe.Pointer(uintptr(ipv4Ptr) - packet.SizeOfIPv4Header)
-				len := fs.RawPacketHeader.OriginalPacketLength - uint32(packet.SizeOfEthernetII) - uint32(packet.SizeOfIPv4Header)
-				if err := getUDP(udpPtr, len, fl); err != nil {
-					log.Errorf("%v", err)
-				}
-			}
-		} else if ether.EtherType == packet.EtherTypeIPv6 {
-			fl.Family = 6
-			ipv6Ptr := unsafe.Pointer(uintptr(fs.RawPacketHeaderData) - packet.SizeOfEthernetII)
-			ipv6, err := packet.DecodeIPv6(ipv6Ptr, fs.RawPacketHeader.OriginalPacketLength-uint32(packet.SizeOfEthernetII))
-			if err != nil {
-				log.Errorf("Unable to decode IPv6 packet: %v", err)
-			}
-
-			fl.SrcAddr = convert.Reverse(ipv6.SrcAddr[:])
-			fl.DstAddr = convert.Reverse(ipv6.DstAddr[:])
-			fl.Protocol = uint32(ipv6.NextHeader)
-			switch ipv6.NextHeader {
-			case packet.TCP:
-				tcpPtr := unsafe.Pointer(uintptr(ipv6Ptr) - packet.SizeOfIPv6Header)
-				len := fs.RawPacketHeader.OriginalPacketLength - uint32(packet.SizeOfEthernetII) - uint32(packet.SizeOfIPv6Header)
-				if err := getTCP(tcpPtr, len, fl); err != nil {
-					log.Errorf("%v", err)
-				}
-			case packet.UDP:
-				udpPtr := unsafe.Pointer(uintptr(ipv6Ptr) - packet.SizeOfIPv6Header)
-				len := fs.RawPacketHeader.OriginalPacketLength - uint32(packet.SizeOfEthernetII) - uint32(packet.SizeOfIPv6Header)
-				if err := getUDP(udpPtr, len, fl); err != nil {
-					log.Errorf("%v", err)
-				}
-			}
-		} else if ether.EtherType == packet.EtherTypeARP || ether.EtherType == packet.EtherTypeLACP {
+		if fs.ExtendedRouterData == nil {
 			continue
-		} else {
-			log.Errorf("Unknown EtherType: 0x%x", ether.EtherType)
 		}
+		fl.NextHop = fs.ExtendedRouterData.NextHop
 
+		sfs.processEthernet(ether.EtherType, fs, fl)
 		sfs.Output <- fl
+	}
+}
+
+func (sfs *SflowServer) processEthernet(ethType uint16, fs *sflow.FlowSample, fl *netflow.Flow) {
+	if ethType == packet.EtherTypeIPv4 {
+		sfs.processIPv4Packet(fs, fl)
+	} else if ethType == packet.EtherTypeIPv6 {
+		sfs.processIPv6Packet(fs, fl)
+	} else if ethType == packet.EtherTypeARP || ethType == packet.EtherTypeLACP {
+		return
+	} else if ethType == packet.EtherTypeIEEE8021Q {
+		sfs.processDot1QPacket(fs, fl)
+	} else {
+		log.Errorf("Unknown EtherType: 0x%x", ethType)
+	}
+}
+
+func (sfs *SflowServer) processDot1QPacket(fs *sflow.FlowSample, fl *netflow.Flow) {
+	dot1q, err := packet.DecodeDot1Q(fs.Data, fs.DataLen)
+	if err != nil {
+		log.Errorf("Unable to decode dot1q header: %v", err)
+	}
+	fs.Data = unsafe.Pointer(uintptr(fs.Data) - packet.SizeOfDot1Q)
+	fs.DataLen -= uint32(packet.SizeOfDot1Q)
+
+	sfs.processEthernet(dot1q.EtherType, fs, fl)
+}
+
+func (sfs *SflowServer) processIPv4Packet(fs *sflow.FlowSample, fl *netflow.Flow) {
+	fl.Family = 4
+	ipv4, err := packet.DecodeIPv4(fs.Data, fs.DataLen)
+	if err != nil {
+		log.Errorf("Unable to decode IPv4 packet: %v", err)
+	}
+	fs.Data = unsafe.Pointer(uintptr(fs.Data) - packet.SizeOfIPv4Header)
+	fs.DataLen -= uint32(packet.SizeOfIPv4Header)
+
+	fl.SrcAddr = convert.Reverse(ipv4.SrcAddr[:])
+	fl.DstAddr = convert.Reverse(ipv4.DstAddr[:])
+	fl.Protocol = uint32(ipv4.Protocol)
+	switch ipv4.Protocol {
+	case packet.TCP:
+		if err := getTCP(fs.Data, fs.DataLen, fl); err != nil {
+			log.Errorf("%v", err)
+		}
+	case packet.UDP:
+		if err := getUDP(fs.Data, fs.DataLen, fl); err != nil {
+			log.Errorf("%v", err)
+		}
+	}
+}
+
+func (sfs *SflowServer) processIPv6Packet(fs *sflow.FlowSample, fl *netflow.Flow) {
+	fl.Family = 6
+	ipv6, err := packet.DecodeIPv6(fs.Data, fs.DataLen)
+	if err != nil {
+		log.Errorf("Unable to decode IPv6 packet: %v", err)
+	}
+	fs.Data = unsafe.Pointer(uintptr(fs.Data) - packet.SizeOfIPv6Header)
+	fs.DataLen -= uint32(packet.SizeOfIPv6Header)
+
+	fl.SrcAddr = convert.Reverse(ipv6.SrcAddr[:])
+	fl.DstAddr = convert.Reverse(ipv6.DstAddr[:])
+	fl.Protocol = uint32(ipv6.NextHeader)
+	switch ipv6.NextHeader {
+	case packet.TCP:
+		if err := getTCP(fs.Data, fs.DataLen, fl); err != nil {
+			log.Errorf("%v", err)
+		}
+	case packet.UDP:
+		if err := getUDP(fs.Data, fs.DataLen, fl); err != nil {
+			log.Errorf("%v", err)
+		}
 	}
 }
 

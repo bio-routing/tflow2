@@ -165,10 +165,11 @@ func decodeFlowSample(flowSamplePtr unsafe.Pointer) (*FlowSample, error) {
 	}
 
 	fs := &FlowSample{
-		FlowSampleHeader:    fsh,
-		RawPacketHeader:     rph,
-		RawPacketHeaderData: rphd,
-		ExtendedRouterData:  erd,
+		FlowSampleHeader:   fsh,
+		RawPacketHeader:    rph,
+		Data:               rphd,
+		DataLen:            rph.OriginalPacketLength,
+		ExtendedRouterData: erd,
 	}
 
 	return fs, nil

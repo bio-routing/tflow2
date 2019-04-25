@@ -1,15 +1,8 @@
 # tflow2
 
-
-<<<<<<< HEAD
-[![Build Status](https://circleci.com/gh/bio-routing/tflow2.svg?branch=master)](https://circleci.com/gh/bio-routing/tflow2)
-[![Coverage Status](https://coveralls.io/repos/taktv6/tflow2/badge.svg?branch=master&service=github)](https://coveralls.io/github/taktv6/tflow2?branch=master)
-[![Go ReportCard](http://goreportcard.com/badge/taktv6/tflow2)](http://goreportcard.com/report/taktv6/tflow2)
-=======
 [![CircleCI](https://circleci.com/gh/bio-routing/tflow2/tree/master.svg?style=shield)](https://circleci.com/gh/bio-routing/tflow2/tree/master)
 [![Codecov](https://codecov.io/gh/bio-routing/tflow2/branch/master/graph/badge.svg)](https://codecov.io/gh/bio-routing/tflow2)
 [![Go ReportCard](http://goreportcard.com/badge/bio-routing/tflow2)](http://goreportcard.com/report/bio-routing/tflow2)
->>>>>>> c11ae9376faf63300dfb8bc8d49dce1a5c04c59d
 
 tflow2 is an in memory netflow version 9, IPFIX and Sflow analyzer.
 It is designed for fast arbitrary queries and exports data to [Prometheus](https://prometheus.io/).

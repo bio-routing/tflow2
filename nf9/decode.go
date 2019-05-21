@@ -17,6 +17,7 @@ import (
 	"unsafe"
 
 	"github.com/bio-routing/tflow2/convert"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -35,7 +36,7 @@ const OptionTemplateFlowSetID = 1
 
 // errorIncompatibleVersion prints an error message in case the detected version is not supported
 func errorIncompatibleVersion(version uint16) error {
-	return fmt.Errorf("NF9: Incompatible protocol version v%d, only v9 is supported", version)
+	return errors.Errorf("NF9: Incompatible protocol version v%d, only v9 is supported", version)
 }
 
 // Decode is the main function of this package. It converts raw packet bytes to Packet struct.

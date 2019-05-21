@@ -12,8 +12,9 @@
 package packet
 
 import (
-	"fmt"
 	"unsafe"
+
+	"github.com/pkg/errors"
 )
 
 const (
@@ -37,7 +38,7 @@ type UDPHeader struct {
 // DecodeUDP decodes a UDP header
 func DecodeUDP(raw unsafe.Pointer, length uint32) (*UDPHeader, error) {
 	if SizeOfTCPHeader > uintptr(length) {
-		return nil, fmt.Errorf("Frame is too short: %d", length)
+		return nil, errors.Errorf("Frame is too short: %d", length)
 	}
 
 	return (*UDPHeader)(unsafe.Pointer(uintptr(raw) - SizeOfUDPHeader)), nil

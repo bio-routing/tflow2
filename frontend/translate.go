@@ -1,7 +1,6 @@
 package frontend
 
 import (
-	"fmt"
 	"net"
 	"net/url"
 	"strconv"
@@ -9,6 +8,7 @@ import (
 
 	"github.com/bio-routing/tflow2/convert"
 	"github.com/bio-routing/tflow2/database"
+	"github.com/pkg/errors"
 )
 
 func (fe *Frontend) translateCondition(field, value string) (*database.Condition, error) {
@@ -69,7 +69,7 @@ func (fe *Frontend) translateCondition(field, value string) (*database.Condition
 		operand = []byte(value)
 
 	default:
-		return nil, fmt.Errorf("unknown field: %s", field)
+		return nil, errors.Errorf("unknown field: %s", field)
 	}
 
 	switch operatorStr {
@@ -82,7 +82,7 @@ func (fe *Frontend) translateCondition(field, value string) (*database.Condition
 	case "lt":
 		operator = database.OpSmaller
 	default:
-		return nil, fmt.Errorf("invalid operator: %s", operatorStr)
+		return nil, errors.Errorf("invalid operator: %s", operatorStr)
 	}
 
 	return &database.Condition{

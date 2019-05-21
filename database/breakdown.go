@@ -9,6 +9,7 @@ import (
 	"github.com/bio-routing/tflow2/iana"
 	"github.com/bio-routing/tflow2/intfmapper"
 	"github.com/bio-routing/tflow2/netflow"
+	"github.com/pkg/errors"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -134,7 +135,7 @@ func (bf *BreakdownFlags) Set(keys []string) error {
 			bf.IntOutName = true
 
 		default:
-			return fmt.Errorf("invalid breakdown key: %s", key)
+			return errors.Errorf("invalid breakdown key: %s", key)
 		}
 	}
 	return nil

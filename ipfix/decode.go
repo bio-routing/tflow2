@@ -17,6 +17,7 @@ import (
 	"unsafe"
 
 	"github.com/bio-routing/tflow2/convert"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -32,7 +33,7 @@ const TemplateSetID = 2
 
 // errorIncompatibleVersion prints an error message in case the detected version is not supported
 func errorIncompatibleVersion(version uint16) error {
-	return fmt.Errorf("IPFIX: Incompatible protocol version v%d, only v10 is supported", version)
+	return errors.Errorf("IPFIX: Incompatible protocol version v%d, only v10 is supported", version)
 }
 
 // Decode is the main function of this package. It converts raw packet bytes to Packet struct.

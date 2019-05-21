@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"io/ioutil"
 
 	"github.com/pkg/errors"
@@ -116,7 +115,7 @@ func New(filename string) (*Config, error) {
 	cfg.AgentsNameByIP = make(map[string]string)
 	for _, agent := range cfg.Agents {
 		if _, ok := cfg.AgentsNameByIP[agent.IPAddress]; ok {
-			return nil, fmt.Errorf("Duplicate agent: %s", agent.Name)
+			return nil, errors.Errorf("Duplicate agent: %s", agent.Name)
 		}
 		cfg.AgentsNameByIP[agent.IPAddress] = agent.Name
 	}

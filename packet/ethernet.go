@@ -12,7 +12,7 @@
 package packet
 
 import (
-	"fmt"
+	"github.com/pkg/errors"
 	"net"
 	"unsafe"
 
@@ -57,7 +57,7 @@ type ethernetII struct {
 // DecodeEthernet decodes an EthernetII header
 func DecodeEthernet(raw unsafe.Pointer, length uint32) (*EthernetHeader, error) {
 	if SizeOfEthernetII > uintptr(length) {
-		return nil, fmt.Errorf("Frame is too short: %d", length)
+		return nil, errors.Errorf("Frame is too short: %d", length)
 	}
 
 	ptr := unsafe.Pointer(uintptr(raw) - SizeOfEthernetII)

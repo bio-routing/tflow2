@@ -12,8 +12,9 @@
 package packet
 
 import (
-	"fmt"
 	"unsafe"
+
+	"github.com/pkg/errors"
 )
 
 const (
@@ -38,7 +39,7 @@ type TCPHeader struct {
 
 func DecodeTCP(raw unsafe.Pointer, length uint32) (*TCPHeader, error) {
 	if SizeOfTCPHeader > uintptr(length) {
-		return nil, fmt.Errorf("Frame is too short: %d", length)
+		return nil, errors.Errorf("Frame is too short: %d", length)
 	}
 
 	return (*TCPHeader)(unsafe.Pointer(uintptr(raw) - SizeOfTCPHeader)), nil

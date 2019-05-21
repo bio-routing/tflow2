@@ -128,7 +128,7 @@ func (conditions Conditions) Includes(field int, operator int) bool {
 // loadFromDisc loads netflow data from disk into in memory data structure
 func (fdb *FlowDatabase) loadFromDisc(ts int64, agent string, query Query, resSum *concurrentResSum) (BreakdownMap, error) {
 	if fdb.storage == "" {
-		return nil, fmt.Errorf("Disk storage is disabled")
+		return nil, errors.Errorf("Disk storage is disabled")
 	}
 
 	res := avltree.New()
@@ -293,7 +293,7 @@ func (fdb *FlowDatabase) getAgent(q *Query) (string, error) {
 	}
 	if rtr == "" {
 		log.Warningf("Agent is mandatory cirteria")
-		return "", fmt.Errorf("Agent criteria not found")
+		return "", errors.Errorf("Agent criteria not found")
 	}
 
 	return rtr, nil

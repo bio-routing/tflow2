@@ -1,7 +1,6 @@
 package intfmapper
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 	"sync"
@@ -79,14 +78,14 @@ func (m *Mapper) renewMapping(a config.Agent) error {
 	snmpClient.Community = a.SNMPCommunity
 
 	if err := snmpClient.Connect(); err != nil {
-		return fmt.Errorf("SNMP client unable to connect: %v", err)
+		return errors.Wrap(err, "SNMP client unable to connect")
 	}
 	defer snmpClient.Conn.Close()
 
 	newMapByName := make(InterfaceIDByName)
 	err := snmpClient.BulkWalk(ifNameOID, newMapByName.update)
 	if err != nil {
-		return fmt.Errorf("Walk error: %v", err)
+		return errors.Wrap(err, "walk error")
 	}
 
 	newMapByID := make(InterfaceNameByID)
@@ -107,11 +106,11 @@ func (im InterfaceIDByName) update(pdu g.SnmpPDU) error {
 	oid := strings.Split(pdu.Name, ".")
 	id, err := strconv.Atoi(oid[len(oid)-1])
 	if err != nil {
-		return fmt.Errorf("Unable to convert interface id: %v", err)
+		return errors.Wrap(err, "Unable to convert interface id")
 	}
 
 	if pdu.Type != g.OctetString {
-		return fmt.Errorf("Unexpected PDU type: %d", pdu.Type)
+		return errors.Errorf("Unexpected PDU type: %d", pdu.Type)
 	}
 
 	im[string(pdu.Value.([]byte))] = uint16(id)

@@ -12,7 +12,7 @@
 package packet
 
 import (
-	"fmt"
+	"github.com/pkg/errors"
 	"unsafe"
 )
 
@@ -31,7 +31,7 @@ type IPv6Header struct {
 
 func DecodeIPv6(raw unsafe.Pointer, length uint32) (*IPv6Header, error) {
 	if SizeOfIPv6Header > uintptr(length) {
-		return nil, fmt.Errorf("Frame is too short: %d", length)
+		return nil, errors.Errorf("Frame is too short: %d", length)
 	}
 
 	return (*IPv6Header)(unsafe.Pointer(uintptr(raw) - SizeOfIPv6Header)), nil

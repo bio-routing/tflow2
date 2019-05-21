@@ -12,7 +12,6 @@
 package sflow
 
 import (
-	"fmt"
 	"net"
 	"unsafe"
 
@@ -33,7 +32,7 @@ const (
 
 // errorIncompatibleVersion prints an error message in case the detected version is not supported
 func errorIncompatibleVersion(version uint32) error {
-	return fmt.Errorf("Sflow: Incompatible protocol version v%d, only v5 is supported", version)
+	return errors.Errorf("Sflow: Incompatible protocol version v%d, only v5 is supported", version)
 }
 
 // Decode is the main function of this package. It converts raw packet bytes to Packet struct.
@@ -68,7 +67,7 @@ func Decode(raw []byte, remote net.IP) (*Packet, error) {
 	agentAddressLen := uint64(0)
 	switch p.headerTop.AgentAddressType {
 	default:
-		return nil, fmt.Errorf("Unknown AgentAddressType %d", p.headerTop.AgentAddressType)
+		return nil, errors.Errorf("Unknown AgentAddressType %d", p.headerTop.AgentAddressType)
 	case 1:
 		agentAddressLen = 4
 	case 2:
@@ -108,7 +107,7 @@ func decodeFlows(samplesPtr unsafe.Pointer, NumSamples uint32) ([]*FlowSample, e
 		sfTypeEnterprise, sfTypeFormat := extractEnterpriseFormat(*(*uint32)(unsafe.Pointer(uintptr(samplesPtr) - uintptr(4))))
 
 		if sfTypeEnterprise != 0 {
-			return nil, fmt.Errorf("Unknown Enterprise: %d", sfTypeEnterprise)
+			return nil, errors.Errorf("Unknown Enterprise: %d", sfTypeEnterprise)
 		}
 
 		sampleLengthPtr := unsafe.Pointer(uintptr(samplesPtr) - uintptr(8))
@@ -188,7 +187,7 @@ func decodeExtendRouterData(erhPtr unsafe.Pointer) (*ExtendedRouterData, error) 
 	addressLen := uint64(0)
 	switch erhTop.AddressType {
 	default:
-		return nil, fmt.Errorf("Unknown AgentAddressType %d", erhTop.AddressType)
+		return nil, errors.Errorf("Unknown AgentAddressType %d", erhTop.AddressType)
 	case 1:
 		addressLen = 4
 	case 2:

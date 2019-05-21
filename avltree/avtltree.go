@@ -13,9 +13,9 @@
 package avltree
 
 import (
-	"fmt"
 	"sync"
 
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -194,7 +194,7 @@ func New() *Tree {
 // Insert inserts an element to tree with root `t`
 func (t *Tree) Insert(key interface{}, value interface{}, issmaller Comparable) (new *TreeNode, err error) {
 	if t == nil {
-		return nil, fmt.Errorf("unable to insert into nil tree")
+		return nil, errors.Errorf("unable to insert into nil tree")
 	}
 	t.lock.Lock()
 	defer t.lock.Unlock()

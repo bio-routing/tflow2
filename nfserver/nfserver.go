@@ -28,6 +28,7 @@ import (
 	"github.com/bio-routing/tflow2/netflow"
 	"github.com/bio-routing/tflow2/nf9"
 	"github.com/bio-routing/tflow2/stats"
+
 	log "github.com/sirupsen/logrus"
 )
 

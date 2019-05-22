@@ -9,6 +9,7 @@ import (
 
 	"github.com/bio-routing/tflow2/config"
 	"github.com/pkg/errors"
+
 	log "github.com/sirupsen/logrus"
 	g "github.com/soniah/gosnmp"
 )

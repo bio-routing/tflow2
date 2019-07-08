@@ -27,7 +27,7 @@ these you will always receive an empty result.
 
 ### Config file
 
-There is YAML file as config. Defaults can be found in `config.yml.example`.
+There is YAML file as config. Defaults can be found in `config-example.yml`.
 You'll at least need to add your Netflow/IPFIX/Sflow agents and adjust (if you don't 
 want to work with interface IDs) your SNMP RO community.
 

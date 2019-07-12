@@ -142,6 +142,7 @@ func (fdb *FlowDatabase) getTimeGroup(fl *netflow.Flow, rtr string) *TimeGroup {
 
 // Add adds flow `fl` to database fdb
 func (fdb *FlowDatabase) Add(fl *netflow.Flow) {
+	fmt.Printf("Adding flow with ts=%d\n", fl.Timestamp)
 	// build indices for map access
 	rtrip := net.IP(fl.Router)
 

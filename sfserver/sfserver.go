@@ -152,7 +152,7 @@ func (sfs *SflowServer) processPacket(agent net.IP, buffer []byte) {
 			Router:     agent,
 			IntIn:      fs.FlowSampleHeader.InputIf,
 			IntOut:     fs.FlowSampleHeader.OutputIf,
-			Size:       uint64(fs.RawPacketHeader.FlowDataLength),
+			Size:       uint64(fs.RawPacketHeader.FrameLength),
 			Packets:    uint32(1),
 			Timestamp:  time.Now().Unix(),
 			Samplerate: uint64(fs.FlowSampleHeader.SamplingRate),

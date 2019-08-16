@@ -25,14 +25,14 @@ func New(risClient ris.RoutingInformationServiceClient) *Server {
 
 // Annotate annotates a flow
 func (s *Server) Annotate(ctx context.Context, nf *netflow.Flow) (*netflow.Flow, error) {
-	ip, err := bnet.IPFromBytes(nf.DstAddr)
+	destIP, err := bnet.IPFromBytes(nf.DstAddr)
 	if err != nil {
 		return nil, fmt.Errorf("Invalid IP: %v", nf.DstAddr)
 	}
 	req := &ris.LPMRequest{
 		Router: net.IP(nf.Router).String(),
 		VrfId:  220434901565105,
-		Pfx:    bnet.NewPfx(ip, 32).ToProto(),
+		Pfx:    bnet.NewPfx(destIP, 32).ToProto(),
 	}
 
 	res, err := s.risClient.LPM(ctx, req)
@@ -41,7 +41,7 @@ func (s *Server) Annotate(ctx context.Context, nf *netflow.Flow) (*netflow.Flow,
 	}
 
 	if len(res.Routes) == 0 {
-		return nil, fmt.Errorf("Prefix not found")
+		return nil, fmt.Errorf("Prefix not found (addr=%s, router=%s, vrf=%d)", destIP.String(), net.IP(nf.Router).String(), req.VrfId)
 	}
 
 	n := bnet.NewPrefixFromProtoPrefix(*res.Routes[len(res.Routes)-1].Pfx).GetIPNet()
@@ -51,7 +51,31 @@ func (s *Server) Annotate(ctx context.Context, nf *netflow.Flow) (*netflow.Flow,
 		Mask: n.Mask,
 	}
 
-	fmt.Printf("Dst %v Prefix %v\n", nf.DstAddr, nf.DstPfx)
+	srcIP, err := bnet.IPFromBytes(nf.SrcAddr)
+	if err != nil {
+		return nil, fmt.Errorf("Invalid IP: %v", nf.SrcAddr)
+	}
+	srcReq := &ris.LPMRequest{
+		Router: net.IP(nf.Router).String(),
+		VrfId:  220434901565105,
+		Pfx:    bnet.NewPfx(srcIP, 32).ToProto(),
+	}
+
+	res, err = s.risClient.LPM(ctx, srcReq)
+	if err != nil {
+		return nil, fmt.Errorf("LPM failed: %v", err)
+	}
+
+	if len(res.Routes) == 0 {
+		return nil, fmt.Errorf("Prefix not found (addr=%s, router=%s, vrf=%d)", destIP.String(), net.IP(nf.Router).String(), req.VrfId)
+	}
+
+	n = bnet.NewPrefixFromProtoPrefix(*res.Routes[len(res.Routes)-1].Pfx).GetIPNet()
+
+	nf.SrcPfx = &netflow.Pfx{
+		IP:   n.IP,
+		Mask: n.Mask,
+	}
 
 	return nf, nil
 }

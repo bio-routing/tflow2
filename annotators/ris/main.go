@@ -35,6 +35,7 @@ func main() {
 		uint16(*grpcPort),
 		servicewrapper.HTTP(uint16(*httpPort)),
 		interceptors,
+		nil,
 	)
 	if err != nil {
 		log.Errorf("failed to listen: %v", err)

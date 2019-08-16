@@ -13,11 +13,12 @@ package nf9
 
 import (
 	"fmt"
-	"net"
 	"unsafe"
 
 	"github.com/bio-routing/tflow2/convert"
 	"github.com/pkg/errors"
+
+	bnet "github.com/bio-routing/bio-rd/net"
 )
 
 const (
@@ -40,7 +41,7 @@ func errorIncompatibleVersion(version uint16) error {
 }
 
 // Decode is the main function of this package. It converts raw packet bytes to Packet struct.
-func Decode(raw []byte, remote net.IP) (*Packet, error) {
+func Decode(raw []byte, remote bnet.IP) (*Packet, error) {
 	data := convert.Reverse(raw) //TODO: Make it endian aware. This assumes a little endian machine
 
 	pSize := len(data)
@@ -96,7 +97,7 @@ func Decode(raw []byte, remote net.IP) (*Packet, error) {
 }
 
 // decodeOption decodes an option template from `packet`
-func decodeOption(packet *Packet, end unsafe.Pointer, size uintptr, remote net.IP) {
+func decodeOption(packet *Packet, end unsafe.Pointer, size uintptr, remote bnet.IP) {
 	min := uintptr(end) - size
 
 	for uintptr(end) > min {
@@ -131,7 +132,7 @@ func decodeOption(packet *Packet, end unsafe.Pointer, size uintptr, remote net.I
 }
 
 // decodeTemplate decodes a template from `packet`
-func decodeTemplate(packet *Packet, end unsafe.Pointer, size uintptr, remote net.IP) {
+func decodeTemplate(packet *Packet, end unsafe.Pointer, size uintptr, remote bnet.IP) {
 	min := uintptr(end) - size
 	for uintptr(end) > min {
 		headerPtr := unsafe.Pointer(uintptr(end) - sizeOfTemplateRecordHeader)

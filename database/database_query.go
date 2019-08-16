@@ -15,11 +15,11 @@ import (
 	"compress/gzip"
 	"fmt"
 	"io/ioutil"
-	"net"
 	"os"
 	"sync"
 	"time"
 
+	bnet "github.com/bio-routing/bio-rd/net"
 	"github.com/bio-routing/tflow2/avltree"
 	"github.com/bio-routing/tflow2/convert"
 	"github.com/bio-routing/tflow2/intfmapper"
@@ -43,7 +43,6 @@ const (
 const (
 	FieldTimestamp = iota
 	FieldAgent
-	FieldFamily
 	FieldSrcAddr
 	FieldDstAddr
 	FieldProtocol
@@ -65,7 +64,6 @@ const (
 var fieldNames = map[string]int{
 	"Timestamp":  FieldTimestamp,
 	"Agent":      FieldAgent,
-	"Family":     FieldFamily,
 	"SrcAddr":    FieldSrcAddr,
 	"DstAddr":    FieldDstAddr,
 	"Protocol":   FieldProtocol,
@@ -198,84 +196,96 @@ func validateFlow(fl *netflow.Flow, query Query, interfaceIDByName intfmapper.In
 			continue
 		case FieldAgent:
 			continue
-		case FieldFamily:
-			if fl.Family != uint32(convert.Uint16b(c.Operand)) {
-				return false
-			}
-			continue
 		case FieldProtocol:
-			if fl.Protocol != uint32(convert.Uint16b(c.Operand)) {
+			if fl.FlowShared.Protocol != uint32(convert.Uint16b(c.Operand)) {
 				return false
 			}
 			continue
 		case FieldSrcAddr:
-			if !net.IP(fl.SrcAddr).Equal(net.IP(c.Operand)) {
+			op, err := bnet.IPFromBytes(c.Operand)
+			if err != nil {
+				return false
+			}
+			if !bnet.IPFromProtoIP(*fl.FlowShared.SrcAddr).Equal(op) {
 				return false
 			}
 			continue
 		case FieldDstAddr:
-			if !net.IP(fl.DstAddr).Equal(net.IP(c.Operand)) {
+			op, err := bnet.IPFromBytes(c.Operand)
+			if err != nil {
+				return false
+			}
+			if !bnet.IPFromProtoIP(*fl.FlowShared.DstAddr).Equal(op) {
 				return false
 			}
 			continue
 		case FieldIntIn:
-			if fl.IntIn != uint32(convert.Uint16b(c.Operand)) {
+			if fl.RtrShared.IntIn != uint32(convert.Uint16b(c.Operand)) {
 				return false
 			}
 			continue
 		case FieldIntOut:
-			if fl.IntOut != uint32(convert.Uint16b(c.Operand)) {
+			if fl.RtrShared.IntOut != uint32(convert.Uint16b(c.Operand)) {
 				return false
 			}
 			continue
 		case FieldNextHop:
-			if !net.IP(fl.NextHop).Equal(net.IP(c.Operand)) {
+			op, err := bnet.IPFromBytes(c.Operand)
+			if err != nil {
 				return false
 			}
+			if !bnet.IPFromProtoIP(*fl.RtrShared.NextHop).Equal(op) {
+				return false
+			}
+
 			continue
 		case FieldSrcAs:
-			if fl.SrcAs != convert.Uint32b(c.Operand) {
+			if fl.FlowShared.SrcAs != convert.Uint32b(c.Operand) {
 				return false
 			}
 			continue
 		case FieldDstAs:
-			if fl.DstAs != convert.Uint32b(c.Operand) {
+			if fl.FlowShared.DstAs != convert.Uint32b(c.Operand) {
 				return false
 			}
 			continue
 		case FieldNextHopAs:
-			if fl.NextHopAs != convert.Uint32b(c.Operand) {
+			if fl.RtrShared.NextHopAs != convert.Uint32b(c.Operand) {
 				return false
 			}
 		case FieldSrcPort:
-			if fl.SrcPort != uint32(convert.Uint16b(c.Operand)) {
+			if fl.FlowShared.SrcPort != uint32(convert.Uint16b(c.Operand)) {
 				return false
 			}
 			continue
 		case FieldDstPort:
-			if fl.DstPort != uint32(convert.Uint16b(c.Operand)) {
+			if fl.FlowShared.DstPort != uint32(convert.Uint16b(c.Operand)) {
 				return false
 			}
 			continue
 		case FieldSrcPfx:
-			if fl.SrcPfx.String() != string(c.Operand) {
+			p := bnet.NewPrefixFromProtoPrefix(*fl.FlowShared.SrcPfx)
+			if p.String() != string(c.Operand) {
 				return false
 			}
+
 			continue
 		case FieldDstPfx:
-			if fl.DstPfx.String() != string(c.Operand) {
+			p := bnet.NewPrefixFromProtoPrefix(*fl.FlowShared.DstPfx)
+			if p.String() != string(c.Operand) {
 				return false
 			}
+
 			continue
 		case FieldIntInName:
 			id := interfaceIDByName[string(c.Operand)]
-			if uint16(fl.IntIn) != id {
+			if uint16(fl.RtrShared.IntIn) != id {
 				return false
 			}
 			continue
 		case FieldIntOutName:
 			id := interfaceIDByName[string(c.Operand)]
-			if uint16(fl.IntOut) != id {
+			if uint16(fl.RtrShared.IntOut) != id {
 				return false
 			}
 			continue

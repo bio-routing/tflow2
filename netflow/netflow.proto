@@ -1,77 +1,79 @@
 syntax = "proto3";
 
-package netflow;
+package tflow2.netflow;
+option go_package = "github.com/bio-routing/tflow2/netflow";
+
+
+import "github.com/bio-routing/bio-rd/net/api/net.proto";
 
 service annotator {
   rpc Annotate (Flow) returns (Flow) {}
 }
 
-// Pfx defines an IP prefix
-message pfx {
-    // IPv4 or IPv6 address
-    bytes IP = 1;
-    // Netmask
-    bytes mask = 2;
-}
-
-// Flow defines a network flow
 message Flow {
-  // Router flow was received from
-  bytes router = 1;
+  // Shared flow attributes
+  FlowShared FlowShared = 1;
 
-  // Address family
-  uint32 family = 2;
-
-  // SRC IP address
-  bytes src_addr =3;
-
-  // DST IP address
-  bytes dst_addr = 4;
-
-  // Protocol
-  uint32 protocol = 5;
-
-  // Number of packets
-  uint32 packets = 6;
-
-  // Size of flow
-  uint64 size = 7;
-
-  // SNMP interface id flow was received on
-  uint32 int_in = 8;
-
-  // SNMP interface if flow was transmitted on
-  uint32 int_out = 9;
-
-  // Next Hop IP address
-  bytes next_hop = 10;
-
-  // SRC ASN
-  uint32 src_as = 11;
-
-  // DST ASN
-  uint32 dst_as = 12;
-
-  // NEXT HOP ASN
-  uint32 next_hop_as = 13;
+  // Shared device attributes
+  RtrShared RtrShared = 2;
 
   // Unix timestamp
-  int64 timestamp = 14;
+  int64 timestamp = 3;
+  
+  // Number of packets
+  uint32 packets = 4;
 
-  // SRC prefix
-  pfx src_pfx = 15;
+  // Size of flow
+  uint64 size = 5;
+}
 
-  // DST perfix
-  pfx dst_pfx = 16;
+message RtrShared {
+  // Router flow was received from
+  bio.net.IP router = 1;
 
-  // SRC port
-  uint32 src_port = 17;
+  // Samplerate
+  uint64 samplerate = 2;
 
-  //DST port
-  uint32 dst_port = 18;
+  // Next Hop
+  bio.net.IP next_hop = 3;
 
-  //Samplerate
-  uint64 samplerate = 19;
+  // Next Hop ASN
+  uint32 next_hop_as = 4;
+
+  // SNMP interface id flow was received on
+  uint32 int_in = 5;
+
+  // SNMP interface if flow was transmitted on
+  uint32 int_out = 6;
+}
+
+message FlowShared {
+  // SRC IP
+  bio.net.IP src_addr = 1;
+
+  // DST IP
+  bio.net.IP dst_addr = 2;
+
+  // Protocol
+  uint32 protocol = 4;
+
+  // SRC Port
+  uint32 src_port = 5;
+
+  // DST Port
+  uint32 dst_port = 6;
+
+  // SRC AS
+  uint32 src_as = 7;
+
+  // DST AS
+  uint32 dst_as = 8;
+
+  // SRC PFX
+  bio.net.Prefix src_pfx = 9;
+
+  // DST PFX
+  bio.net.Prefix dst_pfx = 10;
 }
 
 // Intf groups an interfaces ID and name

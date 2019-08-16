@@ -14,20 +14,21 @@ package nfserver
 import (
 	"sync"
 
+	bnet "github.com/bio-routing/bio-rd/net"
 	"github.com/bio-routing/tflow2/nf9"
 )
 
 type templateCache struct {
-	cache map[uint32]map[uint32]map[uint16]nf9.TemplateRecords
+	cache map[bnet.IP]map[uint32]map[uint16]nf9.TemplateRecords
 	lock  sync.RWMutex
 }
 
 // newTemplateCache creates and initializes a new `templateCache` instance
 func newTemplateCache() *templateCache {
-	return &templateCache{cache: make(map[uint32]map[uint32]map[uint16]nf9.TemplateRecords)}
+	return &templateCache{cache: make(map[bnet.IP]map[uint32]map[uint16]nf9.TemplateRecords)}
 }
 
-func (c *templateCache) set(rtr uint32, sourceID uint32, templateID uint16, records nf9.TemplateRecords) {
+func (c *templateCache) set(rtr bnet.IP, sourceID uint32, templateID uint16, records nf9.TemplateRecords) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	if _, ok := c.cache[rtr]; !ok {
@@ -39,7 +40,7 @@ func (c *templateCache) set(rtr uint32, sourceID uint32, templateID uint16, reco
 	c.cache[rtr][sourceID][templateID] = records
 }
 
-func (c *templateCache) get(rtr uint32, sourceID uint32, templateID uint16) *nf9.TemplateRecords {
+func (c *templateCache) get(rtr bnet.IP, sourceID uint32, templateID uint16) *nf9.TemplateRecords {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 	if _, ok := c.cache[rtr]; !ok {

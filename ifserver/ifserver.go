@@ -28,6 +28,7 @@ import (
 	"github.com/bio-routing/tflow2/srcache"
 	"github.com/bio-routing/tflow2/stats"
 
+	bnet "github.com/bio-routing/bio-rd/net"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -134,14 +135,15 @@ func (ifs *IPFIXServer) packetWorker(identity int, conn *net.UDPConn) {
 			log.Errorf("Unknown source: %s", remote.IP.String())
 		}
 
-		ifs.processPacket(remote.IP, buffer[:length])
+		addr := bnet.IPFromNetIP(remote.IP)
+		ifs.processPacket(addr, buffer[:length])
 	}
 	ifs.wg.Done()
 }
 
 // processPacket takes a raw netflow packet, send it to the decoder, updates template cache
 // (if there are templates in the packet) and passes the decoded packet over to processFlowSets()
-func (ifs *IPFIXServer) processPacket(remote net.IP, buffer []byte) {
+func (ifs *IPFIXServer) processPacket(remote bnet.IP, buffer []byte) {
 	length := len(buffer)
 	packet, err := ipfix.Decode(buffer[:length], remote)
 	if err != nil {
@@ -154,11 +156,11 @@ func (ifs *IPFIXServer) processPacket(remote net.IP, buffer []byte) {
 }
 
 // processFlowSets iterates over flowSets and calls processFlowSet() for each flow set
-func (ifs *IPFIXServer) processFlowSets(remote net.IP, domainID uint32, flowSets []*ipfix.Set, ts int64, packet *ipfix.Packet) {
+func (ifs *IPFIXServer) processFlowSets(remote bnet.IP, domainID uint32, flowSets []*ipfix.Set, ts int64, packet *ipfix.Packet) {
 	addr := remote.String()
 	keyParts := make([]string, 3, 3)
 	for _, set := range flowSets {
-		template := ifs.tmplCache.get(convert.Uint32(remote), domainID, set.Header.SetID)
+		template := ifs.tmplCache.get(remote, domainID, set.Header.SetID)
 
 		if template == nil {
 			templateKey := makeTemplateKey(addr, domainID, set.Header.SetID, keyParts)
@@ -178,7 +180,7 @@ func (ifs *IPFIXServer) processFlowSets(remote net.IP, domainID uint32, flowSets
 }
 
 // process generates Flow elements from records and pushes them into the `receiver` channel
-func (ifs *IPFIXServer) processFlowSet(template *ipfix.TemplateRecords, records []ipfix.FlowDataRecord, agent net.IP, ts int64, packet *ipfix.Packet) {
+func (ifs *IPFIXServer) processFlowSet(template *ipfix.TemplateRecords, records []ipfix.FlowDataRecord, agent bnet.IP, ts int64, packet *ipfix.Packet) {
 	fm := generateFieldMap(template)
 
 	for _, r := range records {
@@ -201,12 +203,8 @@ func (ifs *IPFIXServer) processFlowSet(template *ipfix.TemplateRecords, records 
 		}
 
 		var fl netflow.Flow
-		fl.Router = agent
+		fl.RtrShared.Router = agent.ToProto()
 		fl.Timestamp = ts
-
-		if fm.family >= 0 {
-			fl.Family = uint32(fm.family)
-		}
 
 		if fm.packets >= 0 {
 			fl.Packets = convert.Uint32(r.Values[fm.packets])
@@ -217,48 +215,51 @@ func (ifs *IPFIXServer) processFlowSet(template *ipfix.TemplateRecords, records 
 		}
 
 		if fm.protocol >= 0 {
-			fl.Protocol = convert.Uint32(r.Values[fm.protocol])
+			fl.FlowShared.Protocol = convert.Uint32(r.Values[fm.protocol])
 		}
 
 		if fm.intIn >= 0 {
-			fl.IntIn = convert.Uint32(r.Values[fm.intIn])
+			fl.RtrShared.IntIn = convert.Uint32(r.Values[fm.intIn])
 		}
 
 		if fm.intOut >= 0 {
-			fl.IntOut = convert.Uint32(r.Values[fm.intOut])
+			fl.RtrShared.IntOut = convert.Uint32(r.Values[fm.intOut])
 		}
 
 		if fm.srcPort >= 0 {
-			fl.SrcPort = convert.Uint32(r.Values[fm.srcPort])
+			fl.FlowShared.SrcPort = convert.Uint32(r.Values[fm.srcPort])
 		}
 
 		if fm.dstPort >= 0 {
-			fl.DstPort = convert.Uint32(r.Values[fm.dstPort])
+			fl.FlowShared.DstPort = convert.Uint32(r.Values[fm.dstPort])
 		}
 
 		if fm.srcAddr >= 0 {
-			fl.SrcAddr = convert.Reverse(r.Values[fm.srcAddr])
+			src, _ := bnet.IPFromBytes(convert.Reverse(r.Values[fm.srcAddr]))
+			fl.FlowShared.SrcAddr = src.ToProto()
 		}
 
 		if fm.dstAddr >= 0 {
-			fl.DstAddr = convert.Reverse(r.Values[fm.dstAddr])
+			dst, _ := bnet.IPFromBytes(convert.Reverse(r.Values[fm.dstAddr]))
+			fl.FlowShared.DstAddr = dst.ToProto()
 		}
 
 		if fm.nextHop >= 0 {
-			fl.NextHop = convert.Reverse(r.Values[fm.nextHop])
+			nh, _ := bnet.IPFromBytes(convert.Reverse(r.Values[fm.nextHop]))
+			fl.FlowShared.DstAddr = nh.ToProto()
 		}
 
 		if !ifs.config.BGPAugmentation.Enabled {
 			if fm.srcAsn >= 0 {
-				fl.SrcAs = convert.Uint32(r.Values[fm.srcAsn])
+				fl.FlowShared.SrcAs = convert.Uint32(r.Values[fm.srcAsn])
 			}
 
 			if fm.dstAsn >= 0 {
-				fl.DstAs = convert.Uint32(r.Values[fm.dstAsn])
+				fl.FlowShared.DstAs = convert.Uint32(r.Values[fm.dstAsn])
 			}
 		}
 
-		fl.Samplerate = ifs.sampleRateCache.Get(agent)
+		fl.RtrShared.Samplerate = ifs.sampleRateCache.Get(agent)
 
 		if ifs.config.Debug > 2 {
 			Dump(&fl)
@@ -272,14 +273,13 @@ func (ifs *IPFIXServer) processFlowSet(template *ipfix.TemplateRecords, records 
 func Dump(fl *netflow.Flow) {
 	fmt.Printf("--------------------------------\n")
 	fmt.Printf("Flow dump:\n")
-	fmt.Printf("Router: %d\n", fl.Router)
-	fmt.Printf("Family: %d\n", fl.Family)
-	fmt.Printf("SrcAddr: %s\n", net.IP(fl.SrcAddr).String())
-	fmt.Printf("DstAddr: %s\n", net.IP(fl.DstAddr).String())
-	fmt.Printf("Protocol: %d\n", fl.Protocol)
-	fmt.Printf("NextHop: %s\n", net.IP(fl.NextHop).String())
-	fmt.Printf("IntIn: %d\n", fl.IntIn)
-	fmt.Printf("IntOut: %d\n", fl.IntOut)
+	fmt.Printf("Router: %d\n", bnet.IPFromProtoIP(*fl.RtrShared.Router).String())
+	fmt.Printf("SrcAddr: %s\n", bnet.IPFromProtoIP(*fl.FlowShared.SrcAddr).String())
+	fmt.Printf("DstAddr: %s\n", bnet.IPFromProtoIP(*fl.FlowShared.DstAddr).String())
+	fmt.Printf("Protocol: %d\n", fl.FlowShared.Protocol)
+	fmt.Printf("NextHop: %s\n", bnet.IPFromProtoIP(*fl.RtrShared.NextHop).String())
+	fmt.Printf("IntIn: %d\n", fl.RtrShared.IntIn)
+	fmt.Printf("IntOut: %d\n", fl.RtrShared.IntOut)
 	fmt.Printf("Packets: %d\n", fl.Packets)
 	fmt.Printf("Bytes: %d\n", fl.Size)
 	fmt.Printf("--------------------------------\n")
@@ -361,10 +361,10 @@ func generateFieldMap(template *ipfix.TemplateRecords) *fieldMap {
 }
 
 // updateTemplateCache updates the template cache
-func (ifs *IPFIXServer) updateTemplateCache(remote net.IP, p *ipfix.Packet) {
+func (ifs *IPFIXServer) updateTemplateCache(remote bnet.IP, p *ipfix.Packet) {
 	templRecs := p.GetTemplateRecords()
 	for _, tr := range templRecs {
-		ifs.tmplCache.set(convert.Uint32(remote), tr.Packet.Header.DomainID, tr.Header.TemplateID, *tr)
+		ifs.tmplCache.set(remote, tr.Packet.Header.DomainID, tr.Header.TemplateID, *tr)
 	}
 }
 

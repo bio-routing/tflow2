@@ -15,13 +15,14 @@ package database
 import (
 	"compress/gzip"
 	"fmt"
-	"net"
 	"os"
 	"sync"
 	"sync/atomic"
 	"time"
 	"unsafe"
 
+	bnet "github.com/bio-routing/bio-rd/net"
+	apinet "github.com/bio-routing/bio-rd/net/api"
 	"github.com/bio-routing/tflow2/avltree"
 	"github.com/bio-routing/tflow2/iana"
 	"github.com/bio-routing/tflow2/intfmapper"
@@ -143,7 +144,7 @@ func (fdb *FlowDatabase) getTimeGroup(fl *netflow.Flow, rtr string) *TimeGroup {
 // Add adds flow `fl` to database fdb
 func (fdb *FlowDatabase) Add(fl *netflow.Flow) {
 	// build indices for map access
-	rtrip := net.IP(fl.Router)
+	rtrip := bnet.IPFromProtoIP(*fl.RtrShared.Router)
 
 	if _, ok := fdb.agentsNameByIP[rtrip.String()]; !ok {
 		log.Warningf("Unknown flow source: %s", rtrip.String())
@@ -162,19 +163,19 @@ func (fdb *FlowDatabase) Add(fl *netflow.Flow) {
 
 	// Insert into indices
 	timeGroup.Any.Insert(anyIndex, fl)
-	timeGroup.SrcAddr.Insert(net.IP(fl.SrcAddr), fl)
-	timeGroup.DstAddr.Insert(net.IP(fl.DstAddr), fl)
-	timeGroup.Protocol.Insert(byte(fl.Protocol), fl)
-	timeGroup.IntIn.Insert(uint16(fl.IntIn), fl)
-	timeGroup.IntOut.Insert(uint16(fl.IntOut), fl)
-	timeGroup.NextHop.Insert(net.IP(fl.NextHop), fl)
-	timeGroup.SrcAs.Insert(fl.SrcAs, fl)
-	timeGroup.DstAs.Insert(fl.DstAs, fl)
-	timeGroup.NextHopAs.Insert(fl.NextHopAs, fl)
-	timeGroup.SrcPfx.Insert(fl.SrcPfx.String(), fl)
-	timeGroup.DstPfx.Insert(fl.DstPfx.String(), fl)
-	timeGroup.SrcPort.Insert(fl.SrcPort, fl)
-	timeGroup.DstPort.Insert(fl.DstPort, fl)
+	timeGroup.SrcAddr.Insert(fl.FlowShared.SrcAddr, fl)
+	timeGroup.DstAddr.Insert(fl.FlowShared.DstAddr, fl)
+	timeGroup.Protocol.Insert(byte(fl.FlowShared.Protocol), fl)
+	timeGroup.IntIn.Insert(uint16(fl.RtrShared.IntIn), fl)
+	timeGroup.IntOut.Insert(uint16(fl.RtrShared.IntOut), fl)
+	timeGroup.NextHop.Insert(fl.RtrShared.NextHop, fl)
+	timeGroup.SrcAs.Insert(fl.FlowShared.SrcAs, fl)
+	timeGroup.DstAs.Insert(fl.FlowShared.DstAs, fl)
+	timeGroup.NextHopAs.Insert(fl.RtrShared.NextHopAs, fl)
+	timeGroup.SrcPfx.Insert(fl.FlowShared.SrcPfx, fl)
+	timeGroup.DstPfx.Insert(fl.FlowShared.DstPfx, fl)
+	timeGroup.SrcPort.Insert(fl.FlowShared.SrcPort, fl)
+	timeGroup.DstPort.Insert(fl.FlowShared.DstPort, fl)
 }
 
 // CurrentTimeslot returns the beginning of the current timeslot
@@ -270,7 +271,7 @@ func (fdb *FlowDatabase) dumpToDisk(ts int64, router string) {
 	// Compress data before writing it out to the disk
 	gz, err := gzip.NewWriterLevel(fh, fdb.compLevel)
 	if err != nil {
-		log.Errorf("invalud gzip compression level: %v", err)
+		log.Errorf("invalid gzip compression level: %v", err)
 		return
 	}
 
@@ -293,8 +294,8 @@ func dump(node *avltree.TreeNode, vals ...interface{}) {
 
 		if anonymize {
 			// Remove information about particular IP addresses for privacy reason
-			flowcopy.SrcAddr = []byte{0, 0, 0, 0}
-			flowcopy.DstAddr = []byte{0, 0, 0, 0}
+			flowcopy.FlowShared.SrcAddr = &apinet.IP{Version: flowcopy.FlowShared.SrcAddr.Version}
+			flowcopy.FlowShared.DstAddr = &apinet.IP{Version: flowcopy.FlowShared.DstAddr.Version}
 		}
 
 		flows.Flows = append(flows.Flows, &flowcopy)

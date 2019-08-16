@@ -14,20 +14,21 @@ package ifserver
 import (
 	"sync"
 
+	bnet "github.com/bio-routing/bio-rd/net"
 	"github.com/bio-routing/tflow2/ipfix"
 )
 
 type templateCache struct {
-	cache map[uint32]map[uint32]map[uint16]ipfix.TemplateRecords
+	cache map[bnet.IP]map[uint32]map[uint16]ipfix.TemplateRecords
 	lock  sync.RWMutex
 }
 
 // newTemplateCache creates and initializes a new `templateCache` instance
 func newTemplateCache() *templateCache {
-	return &templateCache{cache: make(map[uint32]map[uint32]map[uint16]ipfix.TemplateRecords)}
+	return &templateCache{cache: make(map[bnet.IP]map[uint32]map[uint16]ipfix.TemplateRecords)}
 }
 
-func (c *templateCache) set(rtr uint32, domainID uint32, templateID uint16, records ipfix.TemplateRecords) {
+func (c *templateCache) set(rtr bnet.IP, domainID uint32, templateID uint16, records ipfix.TemplateRecords) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	if _, ok := c.cache[rtr]; !ok {
@@ -39,7 +40,7 @@ func (c *templateCache) set(rtr uint32, domainID uint32, templateID uint16, reco
 	c.cache[rtr][domainID][templateID] = records
 }
 
-func (c *templateCache) get(rtr uint32, domainID uint32, templateID uint16) *ipfix.TemplateRecords {
+func (c *templateCache) get(rtr bnet.IP, domainID uint32, templateID uint16) *ipfix.TemplateRecords {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 	if _, ok := c.cache[rtr]; !ok {

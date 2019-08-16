@@ -24,6 +24,7 @@ import (
 	"github.com/bio-routing/tflow2/config"
 	"github.com/bio-routing/tflow2/srcache"
 
+	bnet "github.com/bio-routing/bio-rd/net"
 	"github.com/bio-routing/tflow2/convert"
 	"github.com/bio-routing/tflow2/netflow"
 	"github.com/bio-routing/tflow2/nf9"
@@ -137,14 +138,15 @@ func (nfs *NetflowServer) packetWorker(identity int) {
 			log.Errorf("Unknown source: %s", remote.IP.String())
 		}
 
-		nfs.processPacket(remote.IP, buffer[:length])
+		addr := bnet.IPFromNetIP(remote.IP)
+		nfs.processPacket(addr, buffer[:length])
 	}
 	nfs.wg.Done()
 }
 
 // processPacket takes a raw netflow packet, send it to the decoder, updates template cache
 // (if there are templates in the packet) and passes the decoded packet over to processFlowSets()
-func (nfs *NetflowServer) processPacket(remote net.IP, buffer []byte) {
+func (nfs *NetflowServer) processPacket(remote bnet.IP, buffer []byte) {
 	length := len(buffer)
 	packet, err := nf9.Decode(buffer[:length], remote)
 	if err != nil {
@@ -157,11 +159,11 @@ func (nfs *NetflowServer) processPacket(remote net.IP, buffer []byte) {
 }
 
 // processFlowSets iterates over flowSets and calls processFlowSet() for each flow set
-func (nfs *NetflowServer) processFlowSets(remote net.IP, sourceID uint32, flowSets []*nf9.FlowSet, ts int64, packet *nf9.Packet) {
+func (nfs *NetflowServer) processFlowSets(remote bnet.IP, sourceID uint32, flowSets []*nf9.FlowSet, ts int64, packet *nf9.Packet) {
 	addr := remote.String()
 	keyParts := make([]string, 3, 3)
 	for _, set := range flowSets {
-		template := nfs.tmplCache.get(convert.Uint32(remote), sourceID, set.Header.FlowSetID)
+		template := nfs.tmplCache.get(remote, sourceID, set.Header.FlowSetID)
 
 		if template == nil {
 			templateKey := makeTemplateKey(addr, sourceID, set.Header.FlowSetID, keyParts)
@@ -181,7 +183,7 @@ func (nfs *NetflowServer) processFlowSets(remote net.IP, sourceID uint32, flowSe
 }
 
 // process generates Flow elements from records and pushes them into the `receiver` channel
-func (nfs *NetflowServer) processFlowSet(template *nf9.TemplateRecords, records []nf9.FlowDataRecord, agent net.IP, ts int64, packet *nf9.Packet) {
+func (nfs *NetflowServer) processFlowSet(template *nf9.TemplateRecords, records []nf9.FlowDataRecord, agent bnet.IP, ts int64, packet *nf9.Packet) {
 	fm := generateFieldMap(template)
 
 	for _, r := range records {
@@ -209,12 +211,8 @@ func (nfs *NetflowServer) processFlowSet(template *nf9.TemplateRecords, records 
 		}
 
 		var fl netflow.Flow
-		fl.Router = agent
+		fl.RtrShared.Router = agent.ToProto()
 		fl.Timestamp = ts
-
-		if fm.family >= 0 {
-			fl.Family = uint32(fm.family)
-		}
 
 		if fm.packets >= 0 {
 			fl.Packets = convert.Uint32(r.Values[fm.packets])
@@ -225,48 +223,51 @@ func (nfs *NetflowServer) processFlowSet(template *nf9.TemplateRecords, records 
 		}
 
 		if fm.protocol >= 0 {
-			fl.Protocol = convert.Uint32(r.Values[fm.protocol])
+			fl.FlowShared.Protocol = convert.Uint32(r.Values[fm.protocol])
 		}
 
 		if fm.intIn >= 0 {
-			fl.IntIn = convert.Uint32(r.Values[fm.intIn])
+			fl.RtrShared.IntIn = convert.Uint32(r.Values[fm.intIn])
 		}
 
 		if fm.intOut >= 0 {
-			fl.IntOut = convert.Uint32(r.Values[fm.intOut])
+			fl.RtrShared.IntOut = convert.Uint32(r.Values[fm.intOut])
 		}
 
 		if fm.srcPort >= 0 {
-			fl.SrcPort = convert.Uint32(r.Values[fm.srcPort])
+			fl.FlowShared.SrcPort = convert.Uint32(r.Values[fm.srcPort])
 		}
 
 		if fm.dstPort >= 0 {
-			fl.DstPort = convert.Uint32(r.Values[fm.dstPort])
+			fl.FlowShared.DstPort = convert.Uint32(r.Values[fm.dstPort])
 		}
 
 		if fm.srcAddr >= 0 {
-			fl.SrcAddr = convert.Reverse(r.Values[fm.srcAddr])
+			src, _ := bnet.IPFromBytes(convert.Reverse(r.Values[fm.srcAddr]))
+			fl.FlowShared.SrcAddr = src.ToProto()
 		}
 
 		if fm.dstAddr >= 0 {
-			fl.DstAddr = convert.Reverse(r.Values[fm.dstAddr])
+			dst, _ := bnet.IPFromBytes(convert.Reverse(r.Values[fm.dstAddr]))
+			fl.FlowShared.DstAddr = dst.ToProto()
 		}
 
 		if fm.nextHop >= 0 {
-			fl.NextHop = convert.Reverse(r.Values[fm.nextHop])
+			nh, _ := bnet.IPFromBytes(convert.Reverse(r.Values[fm.nextHop]))
+			fl.FlowShared.DstAddr = nh.ToProto()
 		}
 
 		if !nfs.config.BGPAugmentation.Enabled {
 			if fm.srcAsn >= 0 {
-				fl.SrcAs = convert.Uint32(r.Values[fm.srcAsn])
+				fl.FlowShared.SrcAs = convert.Uint32(r.Values[fm.srcAsn])
 			}
 
 			if fm.dstAsn >= 0 {
-				fl.DstAs = convert.Uint32(r.Values[fm.dstAsn])
+				fl.FlowShared.DstAs = convert.Uint32(r.Values[fm.dstAsn])
 			}
 		}
 
-		fl.Samplerate = nfs.sampleRateCache.Get(agent)
+		fl.RtrShared.Samplerate = nfs.sampleRateCache.Get(agent)
 
 		if nfs.config.Debug > 2 {
 			Dump(&fl)
@@ -280,14 +281,13 @@ func (nfs *NetflowServer) processFlowSet(template *nf9.TemplateRecords, records 
 func Dump(fl *netflow.Flow) {
 	fmt.Printf("--------------------------------\n")
 	fmt.Printf("Flow dump:\n")
-	fmt.Printf("Router: %d\n", fl.Router)
-	fmt.Printf("Family: %d\n", fl.Family)
-	fmt.Printf("SrcAddr: %s\n", net.IP(fl.SrcAddr).String())
-	fmt.Printf("DstAddr: %s\n", net.IP(fl.DstAddr).String())
-	fmt.Printf("Protocol: %d\n", fl.Protocol)
-	fmt.Printf("NextHop: %s\n", net.IP(fl.NextHop).String())
-	fmt.Printf("IntIn: %d\n", fl.IntIn)
-	fmt.Printf("IntOut: %d\n", fl.IntOut)
+	fmt.Printf("Router: %d\n", bnet.IPFromProtoIP(*fl.RtrShared.Router).String())
+	fmt.Printf("SrcAddr: %s\n", bnet.IPFromProtoIP(*fl.FlowShared.SrcAddr).String())
+	fmt.Printf("DstAddr: %s\n", bnet.IPFromProtoIP(*fl.FlowShared.DstAddr).String())
+	fmt.Printf("Protocol: %d\n", fl.FlowShared.Protocol)
+	fmt.Printf("NextHop: %s\n", bnet.IPFromProtoIP(*fl.RtrShared.NextHop).String())
+	fmt.Printf("IntIn: %d\n", fl.RtrShared.IntIn)
+	fmt.Printf("IntOut: %d\n", fl.RtrShared.IntOut)
 	fmt.Printf("Packets: %d\n", fl.Packets)
 	fmt.Printf("Bytes: %d\n", fl.Size)
 	fmt.Printf("--------------------------------\n")
@@ -372,10 +372,10 @@ func generateFieldMap(template *nf9.TemplateRecords) *fieldMap {
 }
 
 // updateTemplateCache updates the template cache
-func (nfs *NetflowServer) updateTemplateCache(remote net.IP, p *nf9.Packet) {
+func (nfs *NetflowServer) updateTemplateCache(remote bnet.IP, p *nf9.Packet) {
 	templRecs := p.GetTemplateRecords()
 	for _, tr := range templRecs {
-		nfs.tmplCache.set(convert.Uint32(remote), tr.Packet.Header.SourceID, tr.Header.TemplateID, *tr)
+		nfs.tmplCache.set(remote, tr.Packet.Header.SourceID, tr.Header.TemplateID, *tr)
 	}
 }
 

@@ -18,6 +18,7 @@ import (
 	"github.com/bio-routing/tflow2/convert"
 	"github.com/pkg/errors"
 
+	bnet "github.com/bio-routing/bio-rd/net"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -36,7 +37,7 @@ func errorIncompatibleVersion(version uint32) error {
 }
 
 // Decode is the main function of this package. It converts raw packet bytes to Packet struct.
-func Decode(raw []byte, remote net.IP) (*Packet, error) {
+func Decode(raw []byte, remote bnet.IP) (*Packet, error) {
 	data := convert.Reverse(raw) //TODO: Make it endian aware. This assumes a little endian machine
 
 	pSize := len(data)

@@ -31,6 +31,21 @@ function drawChart() {
                 $("#chart_div").text("No data found")
                 return
             }
+			pres = Papa.parse(rdata.trim())
+			$("#drillDown_div").html("");
+			//$("#drillDown_div").attr("style", "border:1px solid black");
+			for (var i = 1; i < pres.data[0].length; i++) {
+				if (pres.data[0][i] != "Rest") {
+					$("#drillDown_div").append("<div style='display:inline; background: lightgreen'>"+pres.data[0][i]+"</div> ");
+				}
+			}
+			$("#drillDown_div div").on( "click", function() {
+				evaluators = this.innerHTML.split(',');
+				for(var i = 0; i < evaluators.length; i++) {
+					$("#"+evaluators[i].split(':')[0]).val(evaluators[i].split(':')[1]);
+					//console.log(evaluators[i]);
+				}
+			});
             renderChart(rdata)
         },
         error: function(xhr) {
@@ -38,6 +53,7 @@ function drawChart() {
         }
     })
 }
+
 
 function renderChart(rdata) {
     pres = Papa.parse(rdata.trim())

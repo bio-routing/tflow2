@@ -12,6 +12,7 @@
 package sflow
 
 import (
+	"fmt"
 	"net"
 	"unsafe"
 
@@ -142,6 +143,7 @@ func decodeFlowSample(flowSamplePtr unsafe.Pointer) (*FlowSample, error) {
 }
 
 func decodeExpandedFlowSample(flowSamplePtr unsafe.Pointer) (*FlowSample, error) {
+	fmt.Printf("sizeOfExpandedFlowSampleHeader: %d\n", sizeOfExpandedFlowSampleHeader)
 	flowSamplePtr = unsafe.Pointer(uintptr(flowSamplePtr) - uintptr(sizeOfExpandedFlowSampleHeader))
 	fsh := (*ExpandedFlowSampleHeader)(flowSamplePtr).toFlowSampleHeader()
 
@@ -155,7 +157,7 @@ func _decodeFlowSample(flowSamplePtr unsafe.Pointer, fsh *FlowSampleHeader) (*Fl
 
 	for i := uint32(0); i < fsh.FlowRecord; i++ {
 		sfTypeEnterprise, sfTypeFormat := extractEnterpriseFormat(*(*uint32)(unsafe.Pointer(uintptr(flowSamplePtr) - uintptr(4))))
-		flowDataLength := *(*uint32)(unsafe.Pointer(uintptr(flowSamplePtr) - uintptr(8)))
+		flowDataLength := *(*uint32)(unsafe.Pointer(uintptr(flowSamplePtr) - uintptr(8) - uintptr(8)))
 
 		if sfTypeEnterprise == standardSflow {
 			var err error
@@ -173,7 +175,7 @@ func _decodeFlowSample(flowSamplePtr unsafe.Pointer, fsh *FlowSampleHeader) (*Fl
 			case extendedSwitchData:
 
 			default:
-				log.Infof("Unknown sfTypeFormat\n")
+				log.Infof("Unknown sfTypeFormat %d\n", sfTypeFormat)
 			}
 
 		}

@@ -35,6 +35,7 @@ var (
 	sizeOfHeaderTop                = unsafe.Sizeof(headerTop{})
 	sizeOfHeaderBottom             = unsafe.Sizeof(headerBottom{})
 	sizeOfFlowSampleHeader         = unsafe.Sizeof(FlowSampleHeader{})
+	sizeOfExpandedFlowSampleHeader = unsafe.Sizeof(ExpandedFlowSampleHeader{})
 	sizeOfRawPacketHeader          = unsafe.Sizeof(RawPacketHeader{})
 	sizeofExtendedRouterData       = unsafe.Sizeof(ExtendedRouterData{})
 	sizeOfextendedRouterDataTop    = unsafe.Sizeof(extendedRouterDataTop{})
@@ -66,11 +67,12 @@ type headerBottom struct {
 
 // FlowSample is an sflow version 5 flow sample
 type FlowSample struct {
-	FlowSampleHeader   *FlowSampleHeader
-	RawPacketHeader    *RawPacketHeader
-	Data               unsafe.Pointer
-	DataLen            uint32
-	ExtendedRouterData *ExtendedRouterData
+	FlowSampleHeader         *FlowSampleHeader
+	ExpandedFlowSampleHeader *ExpandedFlowSampleHeader
+	RawPacketHeader          *RawPacketHeader
+	Data                     unsafe.Pointer
+	DataLen                  uint32
+	ExtendedRouterData       *ExtendedRouterData
 }
 
 // FlowSampleHeader is an sflow version 5 flow sample header
@@ -85,6 +87,38 @@ type FlowSampleHeader struct {
 	SequenceNumber     uint32
 	SampleLength       uint32
 	EnterpriseType     uint32
+}
+
+// ExpandedFlowSampleHeader is an sflow version 5 flow expanded sample header
+type ExpandedFlowSampleHeader struct {
+	FlowRecord         uint32
+	OutputIf           uint32
+	_                  uint32
+	InputIf            uint32
+	_                  uint32
+	DroppedPackets     uint32
+	SamplePool         uint32
+	SamplingRate       uint32
+	SourceIDClassIndex uint32
+	_                  uint32
+	SequenceNumber     uint32
+	SampleLength       uint32
+	EnterpriseType     uint32
+}
+
+func (e *ExpandedFlowSampleHeader) toFlowSampleHeader() *FlowSampleHeader {
+	return &FlowSampleHeader{
+		FlowRecord:         e.FlowRecord,
+		OutputIf:           e.OutputIf,
+		InputIf:            e.InputIf,
+		DroppedPackets:     e.DroppedPackets,
+		SamplePool:         e.SamplePool,
+		SamplingRate:       e.SamplingRate,
+		SourceIDClassIndex: e.SourceIDClassIndex,
+		SequenceNumber:     e.SequenceNumber,
+		SampleLength:       e.SampleLength,
+		EnterpriseType:     e.EnterpriseType,
+	}
 }
 
 // RawPacketHeader is a raw packet header

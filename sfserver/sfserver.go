@@ -161,10 +161,9 @@ func (sfs *SflowServer) processPacket(agent net.IP, buffer []byte) {
 		// We're updating the sampleCache to allow the forntend to show current sampling rates
 		sfs.sampleRateCache.Set(agent, uint64(fs.FlowSampleHeader.SamplingRate))
 
-		if fs.ExtendedRouterData == nil {
-			continue
+		if fs.ExtendedRouterData != nil {
+			fl.NextHop = fs.ExtendedRouterData.NextHop
 		}
-		fl.NextHop = fs.ExtendedRouterData.NextHop
 
 		sfs.processEthernet(ether.EtherType, fs, fl)
 

@@ -12,7 +12,6 @@
 package sflow
 
 import (
-	"fmt"
 	"net"
 	"unsafe"
 
@@ -90,7 +89,6 @@ func Decode(raw []byte, remote net.IP) (*Packet, error) {
 	}
 	p.Header = &h
 
-	fmt.Printf("Header: %v\n", h)
 	flowSamples, err := decodeFlows(headerBottomPtr, h.NumSamples)
 	if err != nil {
 		return nil, errors.Wrap(err, "Unable to dissect flows")
@@ -144,7 +142,6 @@ func decodeFlowSample(flowSamplePtr unsafe.Pointer) (*FlowSample, error) {
 }
 
 func decodeExpandedFlowSample(flowSamplePtr unsafe.Pointer) (*FlowSample, error) {
-	fmt.Printf("sizeOfExpandedFlowSampleHeader: %d\n", sizeOfExpandedFlowSampleHeader)
 	flowSamplePtr = unsafe.Pointer(uintptr(flowSamplePtr) - uintptr(sizeOfExpandedFlowSampleHeader))
 	fsh := (*ExpandedFlowSampleHeader)(flowSamplePtr).toFlowSampleHeader()
 
@@ -159,7 +156,6 @@ func _decodeFlowSample(flowSamplePtr unsafe.Pointer, fsh *FlowSampleHeader) (*Fl
 	for i := uint32(0); i < fsh.FlowRecord; i++ {
 		sfTypeEnterprise, sfTypeFormat := extractEnterpriseFormat(*(*uint32)(unsafe.Pointer(uintptr(flowSamplePtr) - uintptr(4))))
 		flowDataLength := *(*uint32)(unsafe.Pointer(uintptr(flowSamplePtr) - uintptr(8)))
-		fmt.Printf("flowDataLength: %d\n", flowDataLength)
 
 		if sfTypeEnterprise == standardSflow {
 			var err error
@@ -182,7 +178,6 @@ func _decodeFlowSample(flowSamplePtr unsafe.Pointer, fsh *FlowSampleHeader) (*Fl
 
 		}
 
-		fmt.Printf("Moving flowSamplePtr by %d bytes\n", uintptr(8)+uintptr(flowDataLength))
 		flowSamplePtr = unsafe.Pointer(uintptr(flowSamplePtr) - uintptr(8) - uintptr(flowDataLength))
 	}
 

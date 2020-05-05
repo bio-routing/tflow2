@@ -23,6 +23,7 @@ import (
 
 const (
 	dataFlowSample     = 1
+	expandedFlowSample = 3
 	dataCounterSample  = 2
 	standardSflow      = 0
 	rawPacketHeader    = 1
@@ -119,6 +120,12 @@ func decodeFlows(samplesPtr unsafe.Pointer, NumSamples uint32) ([]*FlowSample, e
 				return nil, errors.Wrap(err, "Unable to decode flow sample")
 			}
 			flowSamples = append(flowSamples, fs)
+		} else if sfTypeFormat == expandedFlowSample {
+			fs, err := decodeExpandedFlowSample(samplesPtr)
+			if err != nil {
+				return nil, errors.Wrap(err, "Unable to decode flow sample")
+			}
+			flowSamples = append(flowSamples, fs)
 		}
 
 		samplesPtr = unsafe.Pointer(uintptr(samplesPtr) - uintptr(sampleLength+8))
@@ -131,6 +138,17 @@ func decodeFlowSample(flowSamplePtr unsafe.Pointer) (*FlowSample, error) {
 	flowSamplePtr = unsafe.Pointer(uintptr(flowSamplePtr) - uintptr(sizeOfFlowSampleHeader))
 	fsh := (*FlowSampleHeader)(flowSamplePtr)
 
+	return _decodeFlowSample(flowSamplePtr, fsh)
+}
+
+func decodeExpandedFlowSample(flowSamplePtr unsafe.Pointer) (*FlowSample, error) {
+	flowSamplePtr = unsafe.Pointer(uintptr(flowSamplePtr) - uintptr(sizeOfExpandedFlowSampleHeader))
+	fsh := (*ExpandedFlowSampleHeader)(flowSamplePtr).toFlowSampleHeader()
+
+	return _decodeFlowSample(flowSamplePtr, fsh)
+}
+
+func _decodeFlowSample(flowSamplePtr unsafe.Pointer, fsh *FlowSampleHeader) (*FlowSample, error) {
 	var rph *RawPacketHeader
 	var rphd unsafe.Pointer
 	var erd *ExtendedRouterData

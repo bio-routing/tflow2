@@ -100,6 +100,7 @@ type ExpandedFlowSampleHeader struct {
 	SamplePool         uint32
 	SamplingRate       uint32
 	SourceIDClassIndex uint32
+	_                  uint32
 	SequenceNumber     uint32
 	SampleLength       uint32
 	EnterpriseType     uint32
